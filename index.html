@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startpage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #2a2a2a;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b6b6b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-engines {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .engine-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .engine-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .engine-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .bookmarks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .bookmark-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .bookmark-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .bookmark-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bookmark-chord {
+            font-size: 0.75rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .bookmark-url {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .shortcuts-info {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .shortcuts-info h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: var(--bg-primary);
+            border-radius: 6px;
+        }
+
+        .key {
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(200px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Startpage</h1>
+            <p>Press <span class="key">/</span> to focus search • Use bookmark chords for quick access</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-engines" id="searchEngines">
+                <button class="engine-btn active" data-engine="searxng" data-key="a">SearXNG</button>
+                <button class="engine-btn" data-engine="google" data-key="s">Google</button>
+                <button class="engine-btn" data-engine="duckduckgo" data-key="d">DuckDuckGo</button>
+                <button class="engine-btn" data-engine="youtube" data-key="f">YouTube</button>
+            </div>
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search the web or type bookmark chord..."
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+
+        <div class="bookmarks" id="bookmarks"></div>
+
+        <div class="controls">
+            <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
+            <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
+            <button class="btn" id="syncBtn">🔄 Sync with Supabase</button>
+        </div>
+
+        <div class="shortcuts-info">
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <div class="shortcut-item">
+                <span>Focus search</span>
+                <span class="key">/</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with SearXNG</span>
+                <span class="key">Alt + A</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with Google</span>
+                <span class="key">Alt + S</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with DuckDuckGo</span>
+                <span class="key">Alt + D</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with YouTube</span>
+                <span class="key">Alt + F</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="bookmarkModal">
+        <div class="modal-content">
+            <h2>Add Bookmark</h2>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="bookmarkTitle" placeholder="e.g. Hacker News">
+            </div>
+            <div class="form-group">
+                <label>URL</label>
+                <input type="text" id="bookmarkUrl" placeholder="https://news.ycombinator.com">
+            </div>
+            <div class="form-group">
+                <label>Chord (2 letters)</label>
+                <input type="text" id="bookmarkChord" placeholder="e.g. HN" maxlength="2">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="saveBookmark">Save</button>
+                <button class="btn" id="cancelBookmark">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co'; // Ganti dengan URL Supabase Anda
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4'; // Ganti dengan anon key Anda
+
+        // Search engines
+        const searchEngines = {
+            searxng: 'https://search.fmhy.net/search?q=',
+            google: 'https://www.google.com/search?q=',
+            duckduckgo: 'https://duckduckgo.com/?q=',
+            youtube: 'https://www.youtube.com/results?search_query='
+        };
+
+        let currentEngine = 'searxng';
+        let bookmarks = [];
+        let chordBuffer = '';
+        let chordTimeout;
+
+        // Default bookmarks
+        const defaultBookmarks = [
+            { title: 'Hacker News', url: 'https://news.ycombinator.com', chord: 'HN' },
+            { title: 'GitHub', url: 'https://github.com', chord: 'GH' },
+            { title: 'Reddit', url: 'https://reddit.com', chord: 'RD' },
+            { title: 'YouTube', url: 'https://youtube.com', chord: 'YT' },
+            { title: 'Twitter', url: 'https://twitter.com', chord: 'TW' },
+            { title: 'Wikipedia', url: 'https://wikipedia.org', chord: 'WK' }
+        ];
+
+        // Initialize
+        function init() {
+            loadBookmarks();
+            setupEventListeners();
+            loadTheme();
+        }
+
+        // Load bookmarks from localStorage or default
+        function loadBookmarks() {
+            const stored = localStorage.getItem('bookmarks');
+            bookmarks = stored ? JSON.parse(stored) : defaultBookmarks;
+            renderBookmarks();
+        }
+
+        // Save bookmarks to localStorage
+        function saveBookmarksLocal() {
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        }
+
+        // Render bookmarks
+        function renderBookmarks() {
+            const container = document.getElementById('bookmarks');
+            container.innerHTML = bookmarks.map(b => `
+                <a href="${b.url}" class="bookmark-card" target="_blank">
+                    <div class="bookmark-title">
+                        <span>${b.title}</span>
+                        <span class="bookmark-chord">${b.chord}</span>
+                    </div>
+                    <div class="bookmark-url">${b.url}</div>
+                </a>
+            `).join('');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Engine buttons
+            document.querySelectorAll('.engine-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelector('.engine-btn.active').classList.remove('active');
+                    btn.classList.add('active');
+                    currentEngine = btn.dataset.engine;
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Focus search with /
+                if (e.key === '/' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                    return;
+                }
+
+                // Alt + key shortcuts for engines
+                if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+                    const btn = document.querySelector(`[data-key="${e.key}"]`);
+                    if (btn) {
+                        e.preventDefault();
+                        btn.click();
+                        searchInput.focus();
+                    }
+                }
+
+                // Chord system (when search not focused)
+                if (document.activeElement !== searchInput && /^[a-zA-Z]$/.test(e.key)) {
+                    e.preventDefault();
+                    chordBuffer += e.key.toUpperCase();
+                    
+                    clearTimeout(chordTimeout);
+                    chordTimeout = setTimeout(() => {
+                        chordBuffer = '';
+                    }, 1000);
+
+                    if (chordBuffer.length === 2) {
+                        const bookmark = bookmarks.find(b => b.chord === chordBuffer);
+                        if (bookmark) {
+                            window.open(bookmark.url, '_blank');
+                        }
+                        chordBuffer = '';
+                    }
+                }
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // Add bookmark
+            document.getElementById('addBookmarkBtn').addEventListener('click', () => {
+                document.getElementById('bookmarkModal').classList.add('active');
+            });
+
+            document.getElementById('cancelBookmark').addEventListener('click', () => {
+                document.getElementById('bookmarkModal').classList.remove('active');
+            });
+
+            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
+
+            // Sync button
+            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase);
+        }
+
+        // Perform search
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                const url = searchEngines[currentEngine] + encodeURIComponent(query);
+                window.open(url, '_blank');
+                document.getElementById('searchInput').value = '';
+            }
+        }
+
+        // Save bookmark
+        function saveBookmark() {
+            const title = document.getElementById('bookmarkTitle').value.trim();
+            const url = document.getElementById('bookmarkUrl').value.trim();
+            const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
+
+            if (!title || !url || !chord || chord.length !== 2) {
+                showToast('Please fill all fields correctly');
+                return;
+            }
+
+            bookmarks.push({ title, url, chord });
+            saveBookmarksLocal();
+            renderBookmarks();
+
+            document.getElementById('bookmarkModal').classList.remove('active');
+            document.getElementById('bookmarkTitle').value = '';
+            document.getElementById('bookmarkUrl').value = '';
+            document.getElementById('bookmarkChord').value = '';
+
+            showToast('Bookmark added successfully!');
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Supabase integration
+        async function syncWithSupabase() {
+            if (SUPABASE_URL === 'https://fjumoikzohnfgucvbcih.supabase.co') {
+                showToast('Please configure Supabase credentials first!');
+                return;
+            }
+
+            try {
+                // Save to Supabase
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        user_id: 'default_user', // Implementasikan auth untuk multi-user
+                        bookmarks_data: JSON.stringify(bookmarks),
+                        updated_at: new Date().toISOString()
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Synced with Supabase successfully!');
+                } else {
+                    showToast('Sync failed. Check console for details.');
+                    console.error('Sync error:', await response.text());
+                }
+            } catch (error) {
+                showToast('Sync error: ' + error.message);
+                console.error('Sync error:', error);
+            }
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
