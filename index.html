@@ -601,7 +601,7 @@
             const key = SUPABASE_KEY.trim();
 
             // Validate credentials
-            if (!url || !key || url.includes('https://fjumoikzohnfgucvbcih.supabase.co') || key.length < 30) {
+            if (!url || !key || url.includes('your-project') || key.length < 30) {
                 showToast('Please configure valid Supabase credentials in the code!');
                 return;
             }
@@ -627,6 +627,8 @@
                 } else {
                     const errorData = await response.json();
                     console.error('Supabase error:', errorData);
+                    console.error('Response status:', response.status);
+                    console.error('Response headers:', response.headers);
                     
                     // If still getting duplicate key error, try to delete and recreate
                     if (errorData.code === '23505') {
@@ -661,9 +663,12 @@
                                 showToast('✅ Synced with Supabase!');
                             } else {
                                 const insertError = await insertResponse.json();
+                                console.error('Insert error:', insertError);
                                 showToast(`❌ Sync failed: ${insertError.message}`);
                             }
                         } else {
+                            const deleteError = await deleteResponse.json();
+                            console.error('Delete error:', deleteError);
                             showToast('❌ Failed to clean up duplicate data');
                         }
                     } else {
@@ -681,7 +686,7 @@
             const url = SUPABASE_URL.trim();
             const key = SUPABASE_KEY.trim();
 
-            if (!url || !key || url.includes('https://fjumoikzohnfgucvbcih.supabase.co') || key.length < 30) {
+            if (!url || !key || url.includes('your-project') || key.length < 30) {
                 console.log('Supabase not configured, using local bookmarks');
                 return;
             }
