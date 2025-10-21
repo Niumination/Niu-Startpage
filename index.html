@@ -612,6 +612,29 @@
             transform: translateY(0);
             opacity: 1;
         }
+
+        .footer-message a {
+            margin: 10px 0;
+            color: var(--black);
+        }
+
+        .underline {
+            background-image: -o-linear-gradient(330deg, var(--orange) 0%, var(--orange) 100%);
+            background-image: linear-gradient(120deg, var(--orange) 0%, var(--orange) 100%);
+            border-radius: 10px 10px 0 0;
+            background-repeat: no-repeat;
+            background-size: 100% 0.25em;
+            background-position: 0 120%;
+            -webkit-transition: background-size 0.2s ease-in-out;
+            -o-transition: background-size 0.2s ease-in-out;
+            transition: background-size 0.2s ease-in-out;
+
+            &:hover {
+                color: var(--black);
+                background-size: 100% 89%;
+                padding: 5px 2px 0 2px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -696,6 +719,10 @@
 
     <div class="toast" id="toast"></div>
 
+    <footer class="footer-message">
+        <a class="underline" href="https://github.com/Niumination/Niu-Startpage" rel="nofollow noreferrer" tabindex="0">Developed by Niumination</a>
+    </footer>
+
     <script>
         // Configuration
         const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
@@ -703,7 +730,7 @@
 
         // Search engines
         const searchEngines = {
-            searxng: 'https://fmhy-search.streamlit.app/search?q=',
+            searxng: 'https://searx.fmhy.net/search?q=',
             google: 'https://www.google.com/search?q=',
             duckduckgo: 'https://duckduckgo.com/?q=',
             youtube: 'https://www.youtube.com/results?search_query='
