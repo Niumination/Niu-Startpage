@@ -391,8 +391,8 @@
 
     <script>
         // Configuration
-        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co'; // Ganti dengan URL Supabase Anda
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4'; // Ganti dengan anon key Anda
+        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co'; // ← HAPUS SPASI DI AKHIR!
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4'; // ← HAPUS SPASI!
 
         // Search engines
         const searchEngines = {
@@ -589,37 +589,41 @@
 
         // Supabase integration
         async function syncWithSupabase() {
-            if (SUPABASE_URL === 'https://fjumoikzohnfgucvbcih.supabase.co') {
-                showToast('Please configure Supabase credentials first!');
+            const url = SUPABASE_URL.trim();
+            const key = SUPABASE_KEY.trim();
+
+            // Validasi konfigurasi
+            if (!url || !key || url === 'https://your-project.supabase.co' || key.length < 30) {
+                showToast('Please configure valid Supabase credentials in the code!');
                 return;
             }
 
             try {
-                // Save to Supabase
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
-                    method: 'POST',
+                const response = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
+                    method: 'PATCH',
                     headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
                         'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
+                        'Prefer': 'return=representation'
                     },
                     body: JSON.stringify({
-                        user_id: 'default_user', // Implementasikan auth untuk multi-user
-                        bookmarks_data: JSON.stringify(bookmarks),
+                        user_id: 'default_user',
+                        bookmarks_data: JSON.stringify(bookmarks), // ✅ DIPERBAIKI: nama field & sintaks
                         updated_at: new Date().toISOString()
                     })
                 });
 
                 if (response.ok) {
-                    showToast('Synced with Supabase successfully!');
+                    showToast('✅ Synced with Supabase!');
                 } else {
-                    showToast('Sync failed. Check console for details.');
-                    console.error('Sync error:', await response.text());
+                    const err = await response.text();
+                    console.error('Supabase error:', err);
+                    showToast('❌ Sync failed. Check console.');
                 }
             } catch (error) {
-                showToast('Sync error: ' + error.message);
-                console.error('Sync error:', error);
+                console.error('Network error:', error);
+                showToast('🌐 Network error: ' + error.message);
             }
         }
 
