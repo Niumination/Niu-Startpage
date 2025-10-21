@@ -53,6 +53,18 @@
             overflow-x: hidden;
         }
 
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+        }
+
         body::before {
             content: '';
             position: fixed;
@@ -103,7 +115,7 @@
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -114,6 +126,23 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             position: relative;
             z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                max-width: 95%;
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+                padding: 1rem;
+                margin: 0 0.5rem;
+                border-radius: 16px;
+            }
         }
 
         .header {
@@ -130,6 +159,18 @@
             background-clip: text;
         }
 
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+        }
+
         .header p {
             color: var(--text-secondary);
             font-size: 0.9rem;
@@ -141,10 +182,24 @@
 
         .search-engines {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
             justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .search-engines {
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-engines {
+                gap: 0.25rem;
+                margin-bottom: 0.75rem;
+            }
         }
 
         .engine-btn {
@@ -200,9 +255,23 @@
 
         .bookmarks {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
             margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .bookmarks {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmarks {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
         }
 
         .bookmark-card {
@@ -219,6 +288,23 @@
             box-shadow: 
                 0 4px 20px rgba(0, 0, 0, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-card {
+                padding: 1.25rem;
+                border-radius: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmark-card {
+                padding: 1rem;
+                border-radius: 12px;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+            }
         }
 
         .bookmark-link {
@@ -244,10 +330,25 @@
 
         .bookmark-title {
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-title {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmark-title {
+                font-size: 0.9rem;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+            }
         }
 
         .bookmark-chord {
@@ -256,14 +357,26 @@
             color: white;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-chord {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmark-chord {
+                font-size: 0.65rem;
+                padding: 0.1rem 0.3rem;
+                align-self: flex-start;
+            }
         }
 
         .bookmark-url {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: none;
         }
 
         .delete-bookmark-btn {
@@ -278,6 +391,23 @@
             margin-left: 1rem;
         }
 
+        @media (max-width: 768px) {
+            .delete-bookmark-btn {
+                padding: 0.4rem;
+                font-size: 0.9rem;
+                margin-left: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .delete-bookmark-btn {
+                padding: 0.3rem;
+                font-size: 0.8rem;
+                margin-left: 0.5rem;
+                align-self: center;
+            }
+        }
+
         .delete-bookmark-btn:hover {
             background: #ef4444;
             color: white;
@@ -289,6 +419,23 @@
             gap: 1rem;
             justify-content: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+                flex-direction: column;
+                align-items: center;
+            }
         }
 
         .btn {
@@ -322,6 +469,21 @@
             box-shadow: 
                 0 4px 20px rgba(0, 0, 0, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .shortcuts-info {
+                padding: 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .shortcuts-info {
+                padding: 0.75rem;
+                font-size: 0.75rem;
+                border-radius: 12px;
+            }
         }
 
         .shortcuts-info h3 {
@@ -374,6 +536,21 @@
             box-shadow: 
                 0 8px 32px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                max-width: 95%;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                max-width: 100%;
+                padding: 1rem;
+                border-radius: 16px;
+            }
         }
 
         .modal-content h2 {
@@ -440,7 +617,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 Startpage</h1>
+            <h1>📚 Niu Startpage</h1>
             <p>Press <span class="key">=</span> to focus search • Use bookmark chords for quick access</p>
         </div>
 
@@ -526,7 +703,7 @@
 
         // Search engines
         const searchEngines = {
-            searxng: 'https://search.fmhy.net/search?q=',
+            searxng: 'https://fmhy-search.streamlit.app/search?q=',
             google: 'https://www.google.com/search?q=',
             duckduckgo: 'https://duckduckgo.com/?q=',
             youtube: 'https://www.youtube.com/results?search_query='
