@@ -607,16 +607,17 @@
             }
 
             try {
-                // Use proper upsert with PATCH method
-                const response = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
-                    method: 'PATCH',
+                // Use UPSERT with proper Supabase syntax
+                const response = await fetch(`${url}/rest/v1/bookmarks`, {
+                    method: 'POST',
                     headers: {
                         'apikey': key,
                         'Authorization': `Bearer ${key}`,
                         'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
+                        'Prefer': 'resolution=merge-duplicates'
                     },
                     body: JSON.stringify({
+                        user_id: 'default_user',
                         bookmarks_data: bookmarks
                     })
                 });
@@ -624,32 +625,48 @@
                 if (response.ok) {
                     showToast('✅ Synced with Supabase!');
                 } else {
-                    // If PATCH fails (no existing record), try POST
-                    if (response.status === 404 || response.status === 400) {
-                        const postResponse = await fetch(`${url}/rest/v1/bookmarks`, {
-                            method: 'POST',
+                    const errorData = await response.json();
+                    console.error('Supabase error:', errorData);
+                    
+                    // If still getting duplicate key error, try to delete and recreate
+                    if (errorData.code === '23505') {
+                        showToast('🔄 Cleaning up duplicate data...');
+                        
+                        // Delete existing record
+                        const deleteResponse = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
+                            method: 'DELETE',
                             headers: {
                                 'apikey': key,
                                 'Authorization': `Bearer ${key}`,
-                                'Content-Type': 'application/json',
-                                'Prefer': 'return=representation'
-                            },
-                            body: JSON.stringify({
-                                user_id: 'default_user',
-                                bookmarks_data: bookmarks
-                            })
+                                'Content-Type': 'application/json'
+                            }
                         });
                         
-                        if (postResponse.ok) {
-                            showToast('✅ Synced with Supabase!');
+                        if (deleteResponse.ok) {
+                            // Now insert fresh data
+                            const insertResponse = await fetch(`${url}/rest/v1/bookmarks`, {
+                                method: 'POST',
+                                headers: {
+                                    'apikey': key,
+                                    'Authorization': `Bearer ${key}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    user_id: 'default_user',
+                                    bookmarks_data: bookmarks
+                                })
+                            });
+                            
+                            if (insertResponse.ok) {
+                                showToast('✅ Synced with Supabase!');
+                            } else {
+                                const insertError = await insertResponse.json();
+                                showToast(`❌ Sync failed: ${insertError.message}`);
+                            }
                         } else {
-                            const errorData = await postResponse.json();
-                            console.error('Supabase POST error:', errorData);
-                            showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
+                            showToast('❌ Failed to clean up duplicate data');
                         }
                     } else {
-                        const errorData = await response.json();
-                        console.error('Supabase error:', errorData);
                         showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
                     }
                 }
