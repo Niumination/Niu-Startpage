@@ -337,6 +337,7 @@
         <div class="controls">
             <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
             <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
+            <button class="btn" id="loadBtn">📥 Load from Supabase</button>
             <button class="btn" id="syncBtn">🔄 Sync with Supabase</button>
         </div>
 
@@ -391,10 +392,10 @@
 
     <script>
         // Configuration
-        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co'; // ✅ TANPA SPASI
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4'; // ✅ TANPA SPASI
+        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
 
-        // Search engines — HAPUS SPASI DI AWAL!
+        // Search engines
         const searchEngines = {
             searxng: 'https://search.fmhy.net/search?q=',
             google: 'https://www.google.com/search?q=',
@@ -402,7 +403,7 @@
             youtube: 'https://www.youtube.com/results?search_query='
         };
 
-        // Default bookmarks — HAPUS SPASI BERLEBIH!
+        // Default bookmarks
         const defaultBookmarks = [
             { title: 'Hacker News', url: 'https://news.ycombinator.com', chord: 'HN' },
             { title: 'GitHub', url: 'https://github.com', chord: 'GH' },
@@ -412,11 +413,20 @@
             { title: 'Wikipedia', url: 'https://wikipedia.org', chord: 'WK' }
         ];
 
+        // Global variables
+        let bookmarks = [];
+        let currentEngine = 'searxng';
+        let chordBuffer = '';
+        let chordTimeout = null;
+
         // Initialize
-        function init() {
-            loadBookmarks();
+        async function init() {
             setupEventListeners();
             loadTheme();
+            await loadBookmarksFromSupabase();
+            if (bookmarks.length === 0) {
+                loadBookmarks();
+            }
         }
 
         // Load bookmarks from localStorage or default
@@ -483,29 +493,29 @@
                     }
                 }
 
-            // Chord system (when search not focused and not in modal)
-            const inModal = document.getElementById('bookmarkModal').classList.contains('active');
-            const inModalInput = document.activeElement === document.getElementById('bookmarkTitle') ||
-                                document.activeElement === document.getElementById('bookmarkUrl') ||
-                                document.activeElement === document.getElementById('bookmarkChord');
-            
-            if (document.activeElement !== searchInput && !inModalInput && /^[a-zA-Z]$/.test(e.key)) {
-                e.preventDefault();
-                chordBuffer += e.key.toUpperCase();
+                // Chord system (when search not focused and not in modal)
+                const inModal = document.getElementById('bookmarkModal').classList.contains('active');
+                const inModalInput = document.activeElement === document.getElementById('bookmarkTitle') ||
+                                    document.activeElement === document.getElementById('bookmarkUrl') ||
+                                    document.activeElement === document.getElementById('bookmarkChord');
                 
-                clearTimeout(chordTimeout);
-                chordTimeout = setTimeout(() => {
-                    chordBuffer = '';
-                }, 1000);
+                if (document.activeElement !== searchInput && !inModalInput && /^[a-zA-Z]$/.test(e.key)) {
+                    e.preventDefault();
+                    chordBuffer += e.key.toUpperCase();
+                    
+                    clearTimeout(chordTimeout);
+                    chordTimeout = setTimeout(() => {
+                        chordBuffer = '';
+                    }, 1000);
 
-                if (chordBuffer.length === 2) {
-                    const bookmark = bookmarks.find(b => b.chord === chordBuffer);
-                    if (bookmark) {
-                        window.open(bookmark.url, '_blank');
+                    if (chordBuffer.length === 2) {
+                        const bookmark = bookmarks.find(b => b.chord === chordBuffer);
+                        if (bookmark) {
+                            window.open(bookmark.url, '_blank');
+                        }
+                        chordBuffer = '';
                     }
-                    chordBuffer = '';
                 }
-            }
             });
 
             // Theme toggle
@@ -521,6 +531,9 @@
             });
 
             document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
+
+            // Load button
+            document.getElementById('loadBtn').addEventListener('click', loadBookmarksFromSupabase);
 
             // Sync button
             document.getElementById('syncBtn').addEventListener('click', syncWithSupabase);
@@ -587,15 +600,53 @@
             const url = SUPABASE_URL.trim();
             const key = SUPABASE_KEY.trim();
 
-            // Validasi: pastikan tidak kosong dan bukan placeholder
+            // Validate credentials
             if (!url || !key || url === 'https://your-project.supabase.co' || key.length < 30) {
                 showToast('Please configure valid Supabase credentials in the code!');
                 return;
             }
 
             try {
-                // Cek apakah sudah ada data untuk user_id = 'default_user'
-                const checkResponse = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
+                // Use upsert (INSERT ... ON CONFLICT) for better reliability
+                const response = await fetch(`${url}/rest/v1/bookmarks`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates'
+                    },
+                    body: JSON.stringify({
+                        user_id: 'default_user',
+                        bookmarks_data: bookmarks
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('✅ Synced with Supabase!');
+                } else {
+                    const errorData = await response.json();
+                    console.error('Supabase error:', errorData);
+                    showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                showToast('🌐 Network error: ' + error.message);
+            }
+        }
+
+        // Load bookmarks from Supabase
+        async function loadBookmarksFromSupabase() {
+            const url = SUPABASE_URL.trim();
+            const key = SUPABASE_KEY.trim();
+
+            if (!url || !key || url === 'https://your-project.supabase.co' || key.length < 30) {
+                console.log('Supabase not configured, using local bookmarks');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
                     method: 'GET',
                     headers: {
                         'apikey': key,
@@ -604,36 +655,19 @@
                     }
                 });
 
-                const existingData = await checkResponse.json();
-                const method = existingData.length > 0 ? 'PATCH' : 'POST';
-                const endpoint = method === 'PATCH'
-                    ? `${url}/rest/v1/bookmarks?user_id=eq.default_user`
-                    : `${url}/rest/v1/bookmarks`;
-
-                const response = await fetch(endpoint, {
-                    method: method,
-                    headers: {
-                        'apikey': key,
-                        'Authorization': `Bearer ${key}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
-                    },
-                    body: JSON.stringify({
-                        user_id: 'default_user',
-                        bookmarks_data: JSON.stringify(bookmarks)
-                    })
-                });
-
                 if (response.ok) {
-                    showToast('✅ Synced with Supabase!');
+                    const data = await response.json();
+                    if (data.length > 0 && data[0].bookmarks_data) {
+                        bookmarks = data[0].bookmarks_data;
+                        saveBookmarksLocal();
+                        renderBookmarks();
+                        showToast('📥 Loaded bookmarks from Supabase');
+                    }
                 } else {
-                    const err = await response.text();
-                    console.error('Supabase error:', err);
-                    showToast('❌ Sync failed. Check console.');
+                    console.error('Failed to load from Supabase:', await response.text());
                 }
             } catch (error) {
-                console.error('Network error:', error);
-                showToast('🌐 Network error: ' + error.message);
+                console.error('Error loading from Supabase:', error);
             }
         }
 
