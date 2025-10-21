@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niu Startpage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #2a2a2a;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b6b6b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, #16213e 100%);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            transition: background 0.3s, color 0.3s;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+            background-size: 300px 300px, 400px 400px, 500px 500px;
+            animation: backgroundFloat 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes backgroundFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(1deg); }
+            66% { transform: translateY(10px) rotate(-1deg); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.3), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(59, 130, 246, 0.3), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(139, 92, 246, 0.3), transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(236, 72, 153, 0.3), transparent),
+                radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.2), transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: particleFloat 15s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translateY(0px) translateX(0px); }
+            100% { transform: translateY(-100px) translateX(50px); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                max-width: 95%;
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+                padding: 1rem;
+                margin: 0 0.5rem;
+                border-radius: 16px;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-engines {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .search-engines {
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-engines {
+                gap: 0.25rem;
+                margin-bottom: 0.75rem;
+            }
+        }
+
+        .engine-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .engine-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .engine-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .bookmarks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .bookmarks {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmarks {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+        }
+
+        .bookmark-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-card {
+                padding: 1.25rem;
+                border-radius: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmark-card {
+                padding: 1rem;
+                border-radius: 12px;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+            }
+        }
+
+        .bookmark-link {
+            flex: 1;
+            text-decoration: none;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .bookmark-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(59, 130, 246, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .bookmark-link:hover {
+            text-decoration: none;
+        }
+
+        .bookmark-title {
+            font-weight: 600;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-title {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmark-title {
+                font-size: 0.9rem;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+            }
+        }
+
+        .bookmark-chord {
+            font-size: 0.75rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-chord {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bookmark-chord {
+                font-size: 0.65rem;
+                padding: 0.1rem 0.3rem;
+                align-self: flex-start;
+            }
+        }
+
+        .bookmark-url {
+            display: none;
+        }
+
+        .delete-bookmark-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 1rem;
+            margin-left: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .delete-bookmark-btn {
+                padding: 0.4rem;
+                font-size: 0.9rem;
+                margin-left: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .delete-bookmark-btn {
+                padding: 0.3rem;
+                font-size: 0.8rem;
+                margin-left: 0.5rem;
+                align-self: center;
+            }
+        }
+
+        .delete-bookmark-btn:hover {
+            background: #ef4444;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .shortcuts-info {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .shortcuts-info {
+                padding: 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .shortcuts-info {
+                padding: 0.75rem;
+                font-size: 0.75rem;
+                border-radius: 12px;
+            }
+        }
+
+        .shortcuts-info h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: var(--bg-primary);
+            border-radius: 6px;
+        }
+
+        .key {
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                max-width: 95%;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                max-width: 100%;
+                padding: 1rem;
+                border-radius: 16px;
+            }
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(200px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .footer-message a {
+            margin: 10px 0;
+            color: var(--black);
+        }
+
+        .underline {
+            background-image: -o-linear-gradient(330deg, var(--orange) 0%, var(--orange) 100%);
+            background-image: linear-gradient(120deg, var(--orange) 0%, var(--orange) 100%);
+            border-radius: 10px 10px 0 0;
+            background-repeat: no-repeat;
+            background-size: 100% 0.25em;
+            background-position: 0 120%;
+            -webkit-transition: background-size 0.2s ease-in-out;
+            -o-transition: background-size 0.2s ease-in-out;
+            transition: background-size 0.2s ease-in-out;
+
+            &:hover {
+                color: var(--black);
+                background-size: 100% 89%;
+                padding: 5px 2px 0 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Niu Startpage</h1>
+            <p>Press <span class="key">=</span> to focus search • Use bookmark chords for quick access</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-engines" id="searchEngines">
+                <button class="engine-btn active" data-engine="searxng" data-key="a">SearXNG</button>
+                <button class="engine-btn" data-engine="google" data-key="s">Google</button>
+                <button class="engine-btn" data-engine="duckduckgo" data-key="d">DuckDuckGo</button>
+                <button class="engine-btn" data-engine="youtube" data-key="f">YouTube</button>
+            </div>
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search the web or type bookmark chord..."
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+
+        <div class="bookmarks" id="bookmarks"></div>
+
+        <div class="controls">
+            <a class="btn" href="navigation.html" target="_blank">📊 Navigation</a>
+            <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
+            <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
+            <button class="btn" id="loadBtn">📥 Load from Supabase</button>
+            <button class="btn" id="syncBtn">🔄 Sync with Supabase</button>
+        </div>
+
+        <div class="shortcuts-info">
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <div class="shortcut-item">
+                <span>Focus search</span>
+                <span class="key">=</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with SearXNG</span>
+                <span class="key">Alt + A</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with Google</span>
+                <span class="key">Alt + S</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with DuckDuckGo</span>
+                <span class="key">Alt + D</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Search with YouTube</span>
+                <span class="key">Alt + F</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="bookmarkModal">
+        <div class="modal-content">
+            <h2>Add Bookmark</h2>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="bookmarkTitle" placeholder="e.g. Hacker News">
+            </div>
+            <div class="form-group">
+                <label>URL</label>
+                <input type="text" id="bookmarkUrl" placeholder="news.ycombinator.com (https:// will be added automatically)">
+            </div>
+            <div class="form-group">
+                <label>Chord (2 letters)</label>
+                <input type="text" id="bookmarkChord" placeholder="e.g. HN" maxlength="2">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="saveBookmark">Save</button>
+                <button class="btn" id="cancelBookmark">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <footer class="footer-message">
+        <a class="underline" href="https://github.com/Niumination/Niu-Startpage" rel="nofollow noreferrer" tabindex="0">Developed by Niumination</a>
+    </footer>
+
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
+
+        // Search engines
+        const searchEngines = {
+            searxng: 'https://searx.fmhy.net/search?q=',
+            google: 'https://www.google.com/search?q=',
+            duckduckgo: 'https://duckduckgo.com/?q=',
+            youtube: 'https://www.youtube.com/results?search_query='
+        };
+
+        // Default bookmarks
+        const defaultBookmarks = [
+            { title: 'Hacker News', url: 'https://news.ycombinator.com', chord: 'HN' },
+            { title: 'GitHub', url: 'https://github.com', chord: 'GH' },
+            { title: 'Reddit', url: 'https://reddit.com', chord: 'RD' },
+            { title: 'YouTube', url: 'https://youtube.com', chord: 'YT' },
+            { title: 'Twitter', url: 'https://twitter.com', chord: 'TW' },
+            { title: 'Wikipedia', url: 'https://wikipedia.org', chord: 'WK' }
+        ];
+
+        // Global variables
+        let bookmarks = [];
+        let currentEngine = 'searxng';
+        let chordBuffer = '';
+        let chordTimeout = null;
+
+        // Initialize
+        async function init() {
+            setupEventListeners();
+            loadTheme();
+            await loadBookmarksFromSupabase();
+            if (bookmarks.length === 0) {
+                loadBookmarks();
+            }
+        }
+
+        // Load bookmarks from localStorage or default
+        function loadBookmarks() {
+            const stored = localStorage.getItem('bookmarks');
+            bookmarks = stored ? JSON.parse(stored) : defaultBookmarks;
+            renderBookmarks();
+        }
+
+        // Save bookmarks to localStorage
+        function saveBookmarksLocal() {
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        }
+
+        // Render bookmarks
+        function renderBookmarks() {
+            const container = document.getElementById('bookmarks');
+            container.innerHTML = bookmarks.map((b, index) => `
+                <div class="bookmark-card">
+                    <a href="${b.url}" class="bookmark-link" target="_blank">
+                        <div class="bookmark-title">
+                            <span>${b.title}</span>
+                            <span class="bookmark-chord">${b.chord}</span>
+                        </div>
+                        <div class="bookmark-url">${b.url}</div>
+                    </a>
+                    <button class="delete-bookmark-btn" onclick="deleteBookmark(${index})" title="Delete bookmark">
+                        🗑️
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Engine buttons
+            document.querySelectorAll('.engine-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelector('.engine-btn.active').classList.remove('active');
+                    btn.classList.add('active');
+                    currentEngine = btn.dataset.engine;
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Focus search with /
+                if (e.key === '=' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                    return;
+                }
+
+                // Alt + key shortcuts for engines
+                if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+                    const btn = document.querySelector(`[data-key="${e.key}"]`);
+                    if (btn) {
+                        e.preventDefault();
+                        btn.click();
+                        searchInput.focus();
+                    }
+                }
+
+                // Chord system (when search not focused and not in modal)
+                const inModal = document.getElementById('bookmarkModal').classList.contains('active');
+                const inModalInput = document.activeElement === document.getElementById('bookmarkTitle') ||
+                                    document.activeElement === document.getElementById('bookmarkUrl') ||
+                                    document.activeElement === document.getElementById('bookmarkChord');
+                
+                if (document.activeElement !== searchInput && !inModalInput && /^[a-zA-Z]$/.test(e.key)) {
+                    e.preventDefault();
+                    chordBuffer += e.key.toUpperCase();
+                    
+                    clearTimeout(chordTimeout);
+                    chordTimeout = setTimeout(() => {
+                        chordBuffer = '';
+                    }, 1000);
+
+                    if (chordBuffer.length === 2) {
+                        const bookmark = bookmarks.find(b => b.chord === chordBuffer);
+                        if (bookmark) {
+                            window.open(bookmark.url, '_blank');
+                        }
+                        chordBuffer = '';
+                    }
+                }
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // Add bookmark
+            document.getElementById('addBookmarkBtn').addEventListener('click', () => {
+                document.getElementById('bookmarkModal').classList.add('active');
+            });
+
+            document.getElementById('cancelBookmark').addEventListener('click', () => {
+                document.getElementById('bookmarkModal').classList.remove('active');
+            });
+
+            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
+
+            // Load button
+            document.getElementById('loadBtn').addEventListener('click', loadBookmarksFromSupabase);
+
+            // Sync button
+            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase);
+        }
+
+        // Perform search
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                const url = searchEngines[currentEngine] + encodeURIComponent(query);
+                window.open(url, '_blank');
+                document.getElementById('searchInput').value = '';
+            }
+        }
+
+        // Save bookmark
+        function saveBookmark() {
+            const title = document.getElementById('bookmarkTitle').value.trim();
+            let url = document.getElementById('bookmarkUrl').value.trim();
+            const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
+
+            if (!title || !url || !chord || chord.length !== 2) {
+                showToast('Please fill all fields correctly');
+                return;
+            }
+
+            // Validate and fix URL
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            // Check for duplicate chord
+            if (bookmarks.some(b => b.chord === chord)) {
+                showToast('Chord already exists! Please use a different 2-letter combination.');
+                return;
+            }
+
+            bookmarks.push({ title, url, chord });
+            saveBookmarksLocal();
+            renderBookmarks();
+
+            document.getElementById('bookmarkModal').classList.remove('active');
+            document.getElementById('bookmarkTitle').value = '';
+            document.getElementById('bookmarkUrl').value = '';
+            document.getElementById('bookmarkChord').value = '';
+
+            showToast('Bookmark added successfully!');
+        }
+
+        // Delete bookmark
+        function deleteBookmark(index) {
+            if (confirm('Are you sure you want to delete this bookmark?')) {
+                bookmarks.splice(index, 1);
+                saveBookmarksLocal();
+                renderBookmarks();
+                showToast('Bookmark deleted successfully!');
+            }
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Supabase integration
+        async function syncWithSupabase() {
+            const url = SUPABASE_URL.trim();
+            const key = SUPABASE_KEY.trim();
+
+            // Validate credentials
+            if (!url || !key || url.includes('your-project') || key.length < 30) {
+                showToast('Please configure valid Supabase credentials in the code!');
+                return;
+            }
+
+            try {
+                // Use UPSERT with proper Supabase syntax
+                const response = await fetch(`${url}/rest/v1/bookmarks`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates'
+                    },
+                    body: JSON.stringify({
+                        user_id: 'default_user',
+                        bookmarks_data: bookmarks
+                    })
+                });
+
+                if (response.ok) {
+                    try { localStorage.setItem('lastSyncOk', 'true'); } catch (e) {}
+                    showToast('✅ Synced with Supabase!');
+                } else {
+                    const errorData = await response.json();
+                    console.error('Supabase error:', errorData);
+                    console.error('Response status:', response.status);
+                    console.error('Response headers:', response.headers);
+                    
+                    // If still getting duplicate key error, try to delete and recreate
+                    if (errorData.code === '23505') {
+                        showToast('🔄 Cleaning up duplicate data...');
+                        
+                        // Delete existing record
+                        const deleteResponse = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
+                            method: 'DELETE',
+                            headers: {
+                                'apikey': key,
+                                'Authorization': `Bearer ${key}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (deleteResponse.ok) {
+                            // Now insert fresh data
+                            const insertResponse = await fetch(`${url}/rest/v1/bookmarks`, {
+                                method: 'POST',
+                                headers: {
+                                    'apikey': key,
+                                    'Authorization': `Bearer ${key}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    user_id: 'default_user',
+                                    bookmarks_data: bookmarks
+                                })
+                            });
+                            
+                            if (insertResponse.ok) {
+                                try { localStorage.setItem('lastSyncOk', 'true'); } catch (e) {}
+                                showToast('✅ Synced with Supabase!');
+                            } else {
+                                const insertError = await insertResponse.json();
+                                console.error('Insert error:', insertError);
+                                showToast(`❌ Sync failed: ${insertError.message}`);
+                            }
+                        } else {
+                            try { localStorage.setItem('lastSyncOk', 'false'); } catch (e) {}
+                            const deleteError = await deleteResponse.json();
+                            console.error('Delete error:', deleteError);
+                            showToast('❌ Failed to clean up duplicate data');
+                        }
+                    } else {
+                        try { localStorage.setItem('lastSyncOk', 'false'); } catch (e) {}
+                        showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                showToast('🌐 Network error: ' + error.message);
+            }
+        }
+
+        // Load bookmarks from Supabase
+        async function loadBookmarksFromSupabase() {
+            const url = SUPABASE_URL.trim();
+            const key = SUPABASE_KEY.trim();
+
+            if (!url || !key || url.includes('your-project') || key.length < 30) {
+                console.log('Supabase not configured, using local bookmarks');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.length > 0 && data[0].bookmarks_data) {
+                        bookmarks = data[0].bookmarks_data;
+                        saveBookmarksLocal();
+                        renderBookmarks();
+                        showToast('📥 Loaded bookmarks from Supabase');
+                    }
+                } else {
+                    console.error('Failed to load from Supabase:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error loading from Supabase:', error);
+            }
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>

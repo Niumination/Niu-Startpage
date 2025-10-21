@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niu Startpage • Navigation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #2a2a2a;
+            --ok: #22c55e;
+            --warn: #f59e0b;
+            --err: #ef4444;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b6b6b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: radial-gradient(1200px 600px at -10% 0%, rgba(59,130,246,0.15), transparent 60%),
+                        radial-gradient(800px 400px at 110% 100%, rgba(236,72,153,0.12), transparent 60%),
+                        #0b0f1a;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-wrap {
+            width: 100%;
+            max-width: 1200px;
+            margin: 2rem auto 6rem auto;
+            padding: 0 1rem;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.55rem 1rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--text-primary);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab:hover { background: var(--accent); border-color: var(--accent); }
+        .tab.active { background: var(--accent); border-color: var(--accent); }
+
+        .panel {
+            margin-top: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(14px);
+        }
+
+        .panel h2 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1.05rem; }
+        .panel p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Status bar */
+        .statusbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 0.5rem 0.85rem;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.35));
+            border-top: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            z-index: 100;
+        }
+
+        .status-left, .status-right { display: flex; align-items: center; gap: 0.75rem; }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            font-size: 0.8rem;
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .ok { background: var(--ok); }
+        .warn { background: var(--warn); }
+        .err { background: var(--err); }
+
+        .progress {
+            position: relative;
+            height: 4px;
+            width: 180px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress::after {
+            content: '';
+            position: absolute;
+            left: -40%;
+            top: 0;
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, transparent, rgba(59,130,246,0.9), transparent);
+            animation: slide 2.2s linear infinite;
+        }
+        @keyframes slide { 0% { left: -40%; } 100% { left: 100%; } }
+
+        .spacer { height: 48px; }
+
+        @media (max-width: 640px) {
+            .progress { width: 120px; }
+            .pill { font-size: 0.78rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-wrap">
+        <div class="topbar">
+            <div class="brand">📚 Niu Navigation</div>
+            <div class="tabs">
+                <a class="tab" href="index.html">Home</a>
+                <a class="tab active" href="#">Navigation</a>
+                <a class="tab" href="#bookmarks" id="bookmarksTab">Bookmarks</a>
+                <a class="tab" href="#settings" id="settingsTab">Settings</a>
+            </div>
+        </div>
+
+        <div class="panel" id="panel">
+            <h2>Status</h2>
+            <p id="statusText">Loading...</p>
+        </div>
+    </div>
+
+    <div class="statusbar">
+        <div class="status-left">
+            <span class="pill"><span class="dot ok" id="netDot"></span><span id="netText">Online</span></span>
+            <span class="pill"><span class="dot" id="syncDot" style="background: var(--warn);"></span><span id="syncText">Not synced</span></span>
+            <span class="pill" id="countPill">0 bookmarks</span>
+        </div>
+        <div class="status-right">
+            <div class="progress" aria-hidden="true"></div>
+            <span class="pill" id="clockPill">--:--</span>
+        </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <script>
+        // Load theme preference
+        (function setTheme() {
+            try {
+                const theme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {}
+        })();
+
+        // Simple status content
+        function updateStatusPanel() {
+            const count = getBookmarkCount();
+            const theme = document.documentElement.getAttribute('data-theme');
+            const el = document.getElementById('statusText');
+            el.textContent = `Theme: ${theme} • Bookmarks: ${count}`;
+            document.getElementById('countPill').textContent = `${count} bookmarks`;
+        }
+
+        function getBookmarkCount() {
+            try {
+                const stored = localStorage.getItem('bookmarks');
+                if (!stored) return 0;
+                const list = JSON.parse(stored);
+                return Array.isArray(list) ? list.length : 0;
+            } catch (e) { return 0; }
+        }
+
+        // Clock
+        function tickClock() {
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2,'0');
+            const mm = String(d.getMinutes()).padStart(2,'0');
+            document.getElementById('clockPill').textContent = `${hh}:${mm}`;
+        }
+        setInterval(tickClock, 1000); tickClock();
+
+        // Network indicator
+        function updateNetwork() {
+            const online = navigator.onLine;
+            const dot = document.getElementById('netDot');
+            const txt = document.getElementById('netText');
+            if (online) { dot.className = 'dot ok'; txt.textContent = 'Online'; }
+            else { dot.className = 'dot err'; txt.textContent = 'Offline'; }
+        }
+        window.addEventListener('online', updateNetwork);
+        window.addEventListener('offline', updateNetwork);
+        updateNetwork();
+
+        // Sync indicator (reads a flag set by index.html after sync)
+        function updateSyncFlag() {
+            try {
+                const flag = localStorage.getItem('lastSyncOk');
+                const dot = document.getElementById('syncDot');
+                const txt = document.getElementById('syncText');
+                if (flag === 'true') { dot.className = 'dot ok'; txt.textContent = 'Synced'; }
+                else { dot.className = 'dot warn'; txt.textContent = 'Not synced'; }
+            } catch (e) {}
+        }
+
+        updateStatusPanel();
+        updateSyncFlag();
+        window.addEventListener('storage', function() { updateStatusPanel(); updateSyncFlag(); });
+    </script>
+</body>
+</html>
+
+
