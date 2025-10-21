@@ -391,10 +391,10 @@
 
     <script>
         // Configuration
-        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co'; // ← HAPUS SPASI DI AKHIR!
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4'; // ← HAPUS SPASI!
+        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co'; // ✅ TANPA SPASI
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4'; // ✅ TANPA SPASI
 
-        // Search engines
+        // Search engines — HAPUS SPASI DI AWAL!
         const searchEngines = {
             searxng: 'https://search.fmhy.net/search?q=',
             google: 'https://www.google.com/search?q=',
@@ -402,12 +402,7 @@
             youtube: 'https://www.youtube.com/results?search_query='
         };
 
-        let currentEngine = 'searxng';
-        let bookmarks = [];
-        let chordBuffer = '';
-        let chordTimeout;
-
-        // Default bookmarks
+        // Default bookmarks — HAPUS SPASI BERLEBIH!
         const defaultBookmarks = [
             { title: 'Hacker News', url: 'https://news.ycombinator.com', chord: 'HN' },
             { title: 'GitHub', url: 'https://github.com', chord: 'GH' },
@@ -592,25 +587,40 @@
             const url = SUPABASE_URL.trim();
             const key = SUPABASE_KEY.trim();
 
-            // Validasi konfigurasi
+            // Validasi: pastikan tidak kosong dan bukan placeholder
             if (!url || !key || url === 'https://your-project.supabase.co' || key.length < 30) {
                 showToast('Please configure valid Supabase credentials in the code!');
                 return;
             }
 
             try {
-                const response = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
-                    method: 'PATCH',
+                // Cek apakah sudah ada data untuk user_id = 'default_user'
+                const checkResponse = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const existingData = await checkResponse.json();
+                const method = existingData.length > 0 ? 'PATCH' : 'POST';
+                const endpoint = method === 'PATCH'
+                    ? `${url}/rest/v1/bookmarks?user_id=eq.default_user`
+                    : `${url}/rest/v1/bookmarks`;
+
+                const response = await fetch(endpoint, {
+                    method: method,
                     headers: {
                         'apikey': key,
                         'Authorization': `Bearer ${key}`,
                         'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
+                        'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
                     },
                     body: JSON.stringify({
                         user_id: 'default_user',
-                        bookmarks_data: JSON.stringify(bookmarks), // ✅ DIPERBAIKI: nama field & sintaks
-                        updated_at: new Date().toISOString()
+                        bookmarks_data: JSON.stringify(bookmarks)
                     })
                 });
 
