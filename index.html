@@ -664,6 +664,7 @@
         <div class="bookmarks" id="bookmarks"></div>
 
         <div class="controls">
+            <a class="btn" href="navigation.html" target="_blank">📊 Navigation</a>
             <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
             <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
             <button class="btn" id="loadBtn">📥 Load from Supabase</button>
@@ -982,6 +983,7 @@
                 });
 
                 if (response.ok) {
+                    try { localStorage.setItem('lastSyncOk', 'true'); } catch (e) {}
                     showToast('✅ Synced with Supabase!');
                 } else {
                     const errorData = await response.json();
@@ -1019,6 +1021,7 @@
                             });
                             
                             if (insertResponse.ok) {
+                                try { localStorage.setItem('lastSyncOk', 'true'); } catch (e) {}
                                 showToast('✅ Synced with Supabase!');
                             } else {
                                 const insertError = await insertResponse.json();
@@ -1026,11 +1029,13 @@
                                 showToast(`❌ Sync failed: ${insertError.message}`);
                             }
                         } else {
+                            try { localStorage.setItem('lastSyncOk', 'false'); } catch (e) {}
                             const deleteError = await deleteResponse.json();
                             console.error('Delete error:', deleteError);
                             showToast('❌ Failed to clean up duplicate data');
                         }
                     } else {
+                        try { localStorage.setItem('lastSyncOk', 'false'); } catch (e) {}
                         showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
                     }
                 }
