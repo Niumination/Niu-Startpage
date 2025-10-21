@@ -607,17 +607,16 @@
             }
 
             try {
-                // Use upsert (INSERT ... ON CONFLICT) for better reliability
-                const response = await fetch(`${url}/rest/v1/bookmarks`, {
-                    method: 'POST',
+                // Use proper upsert with PATCH method
+                const response = await fetch(`${url}/rest/v1/bookmarks?user_id=eq.default_user`, {
+                    method: 'PATCH',
                     headers: {
                         'apikey': key,
                         'Authorization': `Bearer ${key}`,
                         'Content-Type': 'application/json',
-                        'Prefer': 'resolution=merge-duplicates'
+                        'Prefer': 'return=minimal'
                     },
                     body: JSON.stringify({
-                        user_id: 'default_user',
                         bookmarks_data: bookmarks
                     })
                 });
@@ -625,9 +624,34 @@
                 if (response.ok) {
                     showToast('✅ Synced with Supabase!');
                 } else {
-                    const errorData = await response.json();
-                    console.error('Supabase error:', errorData);
-                    showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
+                    // If PATCH fails (no existing record), try POST
+                    if (response.status === 404 || response.status === 400) {
+                        const postResponse = await fetch(`${url}/rest/v1/bookmarks`, {
+                            method: 'POST',
+                            headers: {
+                                'apikey': key,
+                                'Authorization': `Bearer ${key}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=representation'
+                            },
+                            body: JSON.stringify({
+                                user_id: 'default_user',
+                                bookmarks_data: bookmarks
+                            })
+                        });
+                        
+                        if (postResponse.ok) {
+                            showToast('✅ Synced with Supabase!');
+                        } else {
+                            const errorData = await postResponse.json();
+                            console.error('Supabase POST error:', errorData);
+                            showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
+                        }
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Supabase error:', errorData);
+                        showToast(`❌ Sync failed: ${errorData.message || 'Unknown error'}`);
+                    }
                 }
             } catch (error) {
                 console.error('Network error:', error);
