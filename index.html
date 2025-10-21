@@ -488,24 +488,29 @@
                     }
                 }
 
-                // Chord system (when search not focused)
-                if (document.activeElement !== searchInput && /^[a-zA-Z]$/.test(e.key)) {
-                    e.preventDefault();
-                    chordBuffer += e.key.toUpperCase();
-                    
-                    clearTimeout(chordTimeout);
-                    chordTimeout = setTimeout(() => {
-                        chordBuffer = '';
-                    }, 1000);
+            // Chord system (when search not focused and not in modal)
+            const inModal = document.getElementById('bookmarkModal').classList.contains('active');
+            const inModalInput = document.activeElement === document.getElementById('bookmarkTitle') ||
+                                document.activeElement === document.getElementById('bookmarkUrl') ||
+                                document.activeElement === document.getElementById('bookmarkChord');
+            
+            if (document.activeElement !== searchInput && !inModalInput && /^[a-zA-Z]$/.test(e.key)) {
+                e.preventDefault();
+                chordBuffer += e.key.toUpperCase();
+                
+                clearTimeout(chordTimeout);
+                chordTimeout = setTimeout(() => {
+                    chordBuffer = '';
+                }, 1000);
 
-                    if (chordBuffer.length === 2) {
-                        const bookmark = bookmarks.find(b => b.chord === chordBuffer);
-                        if (bookmark) {
-                            window.open(bookmark.url, '_blank');
-                        }
-                        chordBuffer = '';
+                if (chordBuffer.length === 2) {
+                    const bookmark = bookmarks.find(b => b.chord === chordBuffer);
+                    if (bookmark) {
+                        window.open(bookmark.url, '_blank');
                     }
+                    chordBuffer = '';
                 }
+            }
             });
 
             // Theme toggle
