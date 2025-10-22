@@ -398,6 +398,34 @@
             transform: translateY(-2px);
         }
 
+        .nav-fab {
+            position: fixed;
+            bottom: 5rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s;
+            z-index: 999;
+            text-decoration: none;
+            font-size: 1.5rem;
+        }
+
+        .nav-fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.6);
+        }
+
+        .nav-fab:active {
+            transform: scale(0.95) rotate(90deg);
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -514,6 +542,14 @@
             .bookmarks {
                 grid-template-columns: 1fr;
             }
+            
+            .nav-fab {
+                bottom: 4.5rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
@@ -546,12 +582,16 @@
         </div>
 
         <div class="controls">
-            <a class="btn" href="navigation.html">📊 Navigation</a>
             <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
             <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
             <button class="btn" id="syncBtn">🔄 Sync</button>
         </div>
     </div>
+
+    <!-- Floating Action Button for Navigation -->
+    <a href="navigation.html" class="nav-fab" title="Settings & Navigation">
+        ⚙️
+    </a>
 
     <div class="modal" id="bookmarkModal">
         <div class="modal-content">
