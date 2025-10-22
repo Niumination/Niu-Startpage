@@ -37,6 +37,14 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            padding-bottom: 3.5rem;
+        }
+
+        body.custom-bg {
+            background-image: var(--custom-bg);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
         .nav-wrap {
@@ -194,6 +202,13 @@
             font-size: 0.75rem;
             font-weight: 600;
             color: white;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
         .settings-grid {
@@ -479,6 +494,47 @@
             font-size: 0.8rem;
         }
 
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0.5rem 1rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 99;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .footer a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
+        }
+
         @media (max-width: 640px) {
             .settings-grid, .stats-grid {
                 grid-template-columns: 1fr;
@@ -529,6 +585,16 @@
                 <div class="chart-title">📊 Bookmarks by Workspace</div>
                 <div class="bar-chart" id="workspaceChart"></div>
             </div>
+
+            <div class="chart-container">
+                <div class="chart-title">📤 Export Bookmarks</div>
+                <p style="margin-bottom: 1rem;">Export all your bookmarks in different formats</p>
+                <div class="export-buttons">
+                    <button class="btn" id="exportJSON">📄 Export JSON</button>
+                    <button class="btn btn-secondary" id="exportCSV">📊 Export CSV</button>
+                    <button class="btn btn-secondary" id="exportMarkdown">📝 Export Markdown</button>
+                </div>
+            </div>
         </div>
 
         <!-- Workspaces Panel -->
@@ -568,12 +634,24 @@
                     </div>
 
                     <div class="setting-item">
-                        <label class="setting-label">Background Style</label>
-                        <select class="setting-select" id="bgStyle">
-                            <option value="gradient">Gradient</option>
-                            <option value="solid">Solid Color</option>
-                            <option value="minimal">Minimal</option>
-                        </select>
+                        <label class="setting-label">Background Type</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="bgGradient" name="bgType" value="gradient" checked>
+                                <label for="bgGradient">Gradient</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="bgImage" name="bgType" value="image">
+                                <label for="bgImage">Image</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-item" id="bgImageSettings" style="display: none;">
+                        <label class="setting-label">Background Image URL</label>
+                        <input type="text" class="setting-input" id="bgUrl" placeholder="https://example.com/image.jpg">
+                        <label class="setting-label" style="margin-top: 0.5rem;">Or Upload Image</label>
+                        <input type="file" class="setting-input" id="bgUpload" accept="image/*">
                     </div>
                 </div>
 
@@ -613,8 +691,8 @@
                     <div class="setting-item">
                         <label class="setting-label">Default Search Engine</label>
                         <select class="setting-select" id="defaultEngine">
-                            <option value="searxng">SearXNG</option>
                             <option value="google">Google</option>
+                            <option value="searxng">SearXNG</option>
                             <option value="duckduckgo">DuckDuckGo</option>
                             <option value="youtube">YouTube</option>
                         </select>
@@ -713,9 +791,8 @@
         </div>
     </div>
 
-    <div class="statusbar">
-        <div class="pill" id="countPill">0 bookmarks</div>
-        <div class="pill" id="clockPill">--:--</div>
+    <div class="footer">
+        Developed by <a href="https://github.com/Niumination" target="_blank" rel="noopener">Niumination</a>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -727,11 +804,12 @@
         const DEFAULT_SETTINGS = {
             themeMode: 'dark',
             accentColor: '#3b82f6',
-            bgStyle: 'gradient',
+            bgType: 'gradient',
+            bgUrl: '',
             cardSize: 'medium',
             cardStyle: 'glass',
             showAnimations: true,
-            defaultEngine: 'searxng',
+            defaultEngine: 'google',
             searchNewTab: true,
             fontSize: 'medium',
             showUrls: false,
@@ -744,6 +822,7 @@
 
         async function init() {
             loadSettings();
+            applySettings();
             await loadWorkspacesFromSupabase();
             await loadBookmarksFromSupabase();
             updateStats();
@@ -763,6 +842,21 @@
             } catch (e) {
                 console.error('Error loading settings:', e);
                 settings = { ...DEFAULT_SETTINGS };
+            }
+        }
+
+        function applySettings() {
+            document.documentElement.setAttribute('data-theme', settings.themeMode);
+            
+            if (settings.accentColor) {
+                document.documentElement.style.setProperty('--accent', settings.accentColor);
+            }
+
+            if (settings.bgType === 'image' && settings.bgUrl) {
+                document.body.classList.add('custom-bg');
+                document.body.style.setProperty('--custom-bg', `url(${settings.bgUrl})`);
+            } else {
+                document.body.classList.remove('custom-bg');
             }
         }
 
@@ -812,7 +906,6 @@
             document.getElementById('totalChords').textContent = bookmarks.filter(b => b.chord).length;
             document.getElementById('syncStatus').textContent = '✓';
             document.getElementById('syncCard').classList.add('green');
-            document.getElementById('countPill').textContent = `${bookmarks.length} bookmarks`;
             
             renderWorkspaceChart();
         }
@@ -912,8 +1005,11 @@
                     await loadBookmarksFromSupabase();
                     updateStats();
                     showToast('✅ Deleted!');
+                } else {
+                    throw new Error('Delete failed');
                 }
             } catch (error) {
+                console.error('Delete error:', error);
                 showToast('❌ Delete failed');
             }
         };
@@ -934,6 +1030,25 @@
         }
 
         function setupEventListeners() {
+            const bgTypeRadios = document.querySelectorAll('input[name="bgType"]');
+            bgTypeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    document.getElementById('bgImageSettings').style.display = 
+                        e.target.value === 'image' ? 'block' : 'none';
+                });
+            });
+
+            document.getElementById('bgUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        document.getElementById('bgUrl').value = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
             document.getElementById('addWorkspaceBtn').addEventListener('click', () => {
                 document.getElementById('workspaceModalTitle').textContent = 'Add Workspace';
                 document.getElementById('editWorkspaceId').value = '';
@@ -966,6 +1081,10 @@
             
             document.getElementById('resetSettings').addEventListener('click', resetAllSettings);
 
+            document.getElementById('exportJSON').addEventListener('click', () => exportBookmarks('json'));
+            document.getElementById('exportCSV').addEventListener('click', () => exportBookmarks('csv'));
+            document.getElementById('exportMarkdown').addEventListener('click', () => exportBookmarks('markdown'));
+
             document.getElementById('workspaceModal').addEventListener('click', (e) => {
                 if (e.target.id === 'workspaceModal') {
                     e.target.classList.remove('active');
@@ -992,19 +1111,31 @@
                         headers: {
                             'apikey': SUPABASE_KEY,
                             'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
                         },
                         body: JSON.stringify({ name, icon, color })
                     });
                     
-                    if (response.ok) showToast('✅ Updated!');
+                    if (response.ok) {
+                        showToast('✅ Updated!');
+                    } else {
+                        throw new Error('Update failed');
+                    }
                 } else {
+                    const existing = workspaces.find(w => w.id === id);
+                    if (existing) {
+                        showToast('❌ Workspace ID already exists!');
+                        return;
+                    }
+
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces`, {
                         method: 'POST',
                         headers: {
                             'apikey': SUPABASE_KEY,
                             'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
                         },
                         body: JSON.stringify({
                             id,
@@ -1015,13 +1146,18 @@
                         })
                     });
                     
-                    if (response.ok) showToast('✅ Created!');
+                    if (response.ok) {
+                        showToast('✅ Created!');
+                    } else {
+                        throw new Error('Create failed');
+                    }
                 }
                 
                 await loadWorkspacesFromSupabase();
                 updateStats();
                 document.getElementById('workspaceModal').classList.remove('active');
             } catch (error) {
+                console.error('Save error:', error);
                 showToast('❌ Save failed');
             }
         }
@@ -1029,7 +1165,6 @@
         function applySettingsToUI() {
             document.getElementById('themeMode').value = settings.themeMode;
             document.getElementById('accentColor').value = settings.accentColor;
-            document.getElementById('bgStyle').value = settings.bgStyle;
             document.getElementById('cardSize').value = settings.cardSize;
             document.getElementById('cardStyle').value = settings.cardStyle;
             document.getElementById('showAnimations').checked = settings.showAnimations;
@@ -1038,12 +1173,20 @@
             document.getElementById('fontSize').value = settings.fontSize;
             document.getElementById('showUrls').checked = settings.showUrls;
             document.getElementById('compactMode').checked = settings.compactMode;
+            
+            const bgTypeRadio = document.querySelector(`input[name="bgType"][value="${settings.bgType}"]`);
+            if (bgTypeRadio) bgTypeRadio.checked = true;
+            
+            document.getElementById('bgUrl').value = settings.bgUrl || '';
+            document.getElementById('bgImageSettings').style.display = 
+                settings.bgType === 'image' ? 'block' : 'none';
         }
 
         function saveAllSettings() {
             settings.themeMode = document.getElementById('themeMode').value;
             settings.accentColor = document.getElementById('accentColor').value;
-            settings.bgStyle = document.getElementById('bgStyle').value;
+            settings.bgType = document.querySelector('input[name="bgType"]:checked').value;
+            settings.bgUrl = document.getElementById('bgUrl').value;
             settings.cardSize = document.getElementById('cardSize').value;
             settings.cardStyle = document.getElementById('cardStyle').value;
             settings.showAnimations = document.getElementById('showAnimations').checked;
@@ -1055,6 +1198,7 @@
 
             localStorage.setItem('niuSettings', JSON.stringify(settings));
             showToast('✅ Settings saved!');
+            applySettings();
             window.dispatchEvent(new Event('storage'));
         }
 
@@ -1092,6 +1236,7 @@
                         settings = { ...DEFAULT_SETTINGS, ...data.settings };
                         localStorage.setItem('niuSettings', JSON.stringify(settings));
                         applySettingsToUI();
+                        applySettings();
                         showToast('📥 Settings imported!');
                     }
                 } catch (error) {
@@ -1108,14 +1253,78 @@
             settings = { ...DEFAULT_SETTINGS };
             localStorage.setItem('niuSettings', JSON.stringify(settings));
             applySettingsToUI();
+            applySettings();
             showToast('🔄 Settings reset!');
             window.dispatchEvent(new Event('storage'));
+        }
+
+        function exportBookmarks(format) {
+            if (bookmarks.length === 0) {
+                showToast('❌ No bookmarks to export');
+                return;
+            }
+
+            let content, mimeType, filename;
+            const date = new Date().toISOString().split('T')[0];
+
+            if (format === 'json') {
+                content = JSON.stringify(bookmarks, null, 2);
+                mimeType = 'application/json';
+                filename = `niu-bookmarks-${date}.json`;
+            } else if (format === 'csv') {
+                const headers = ['ID', 'Title', 'URL', 'Chord', 'Workspace', 'Created'];
+                const rows = bookmarks.map(b => [
+                    b.id,
+                    `"${b.title.replace(/"/g, '""')}"`,
+                    `"${b.url}"`,
+                    b.chord || '',
+                    b.workspace,
+                    b.created_at || ''
+                ]);
+                content = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                mimeType = 'text/csv';
+                filename = `niu-bookmarks-${date}.csv`;
+            } else if (format === 'markdown') {
+                const grouped = {};
+                bookmarks.forEach(b => {
+                    if (!grouped[b.workspace]) grouped[b.workspace] = [];
+                    grouped[b.workspace].push(b);
+                });
+
+                content = '# Niu Startpage Bookmarks\n\n';
+                content += `Exported: ${new Date().toLocaleString()}\n\n`;
+                
+                Object.keys(grouped).forEach(wsId => {
+                    const ws = workspaces.find(w => w.id === wsId);
+                    content += `## ${ws ? ws.icon + ' ' + ws.name : wsId}\n\n`;
+                    grouped[wsId].forEach(b => {
+                        content += `- [${b.title}](${b.url})`;
+                        if (b.chord) content += ` \`${b.chord}\``;
+                        content += '\n';
+                    });
+                    content += '\n';
+                });
+                
+                mimeType = 'text/markdown';
+                filename = `niu-bookmarks-${date}.md`;
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showToast(`✅ Exported as ${format.toUpperCase()}!`);
         }
 
         function updateClock() {
             const d = new Date();
             const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-            document.getElementById('clockPill').textContent = time;
+            const pill = document.getElementById('clockPill');
+            if (pill) pill.textContent = time;
         }
 
         function showToast(message) {

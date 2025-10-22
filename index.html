@@ -37,6 +37,14 @@
             align-items: center;
             justify-content: center;
             padding: 2rem;
+            padding-bottom: 5rem;
+        }
+
+        body.custom-bg {
+            background-image: var(--custom-bg);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
         .container {
@@ -111,45 +119,85 @@
 
         .search-container {
             margin-bottom: 2rem;
+            position: relative;
         }
 
-        .search-engines {
+        .search-wrapper {
             display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .engine-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .engine-btn:hover, .engine-btn.active {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 1rem 1.5rem;
+            align-items: center;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .search-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .engine-selector {
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            cursor: pointer;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            transition: background 0.2s;
+            min-width: 120px;
+        }
+
+        .engine-selector:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .engine-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.5rem;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .engine-dropdown.show {
+            display: block;
+        }
+
+        .engine-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .engine-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .engine-option.active {
+            background: var(--accent);
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
             color: var(--text-primary);
             font-size: 1.1rem;
         }
 
         #searchInput:focus {
             outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
         .bookmarks {
@@ -334,6 +382,29 @@
             color: var(--text-secondary);
         }
 
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .bookmarks {
                 grid-template-columns: 1fr;
@@ -353,13 +424,19 @@
         </div>
 
         <div class="search-container">
-            <div class="search-engines">
-                <button class="engine-btn active" data-engine="searxng">SearXNG</button>
-                <button class="engine-btn" data-engine="google">Google</button>
-                <button class="engine-btn" data-engine="duckduckgo">DuckDuckGo</button>
-                <button class="engine-btn" data-engine="youtube">YouTube</button>
+            <div class="search-wrapper">
+                <div class="engine-selector" id="engineSelector">
+                    <span id="currentEngine">Google</span>
+                    <span style="margin-left: auto;">▼</span>
+                </div>
+                <input type="text" id="searchInput" placeholder="Search or enter chord..." autocomplete="off">
             </div>
-            <input type="text" id="searchInput" placeholder="Search or enter chord..." autocomplete="off">
+            <div class="engine-dropdown" id="engineDropdown">
+                <div class="engine-option active" data-engine="google">🔍 Google</div>
+                <div class="engine-option" data-engine="searxng">🔎 SearXNG</div>
+                <div class="engine-option" data-engine="duckduckgo">🦆 DuckDuckGo</div>
+                <div class="engine-option" data-engine="youtube">📺 YouTube</div>
+            </div>
         </div>
 
         <div class="bookmarks" id="bookmarks">
@@ -401,6 +478,10 @@
         </div>
     </div>
 
+    <div class="footer">
+        Developed by <a href="https://github.com/Niumination" target="_blank" rel="noopener">Niumination</a>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script>
@@ -408,8 +489,8 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
 
         const searchEngines = {
-            searxng: 'https://searx.fmhy.net/search?q=',
             google: 'https://www.google.com/search?q=',
+            searxng: 'https://searx.fmhy.net/search?q=',
             duckduckgo: 'https://duckduckgo.com/?q=',
             youtube: 'https://www.youtube.com/results?search_query='
         };
@@ -417,8 +498,15 @@
         let bookmarks = [];
         let workspaces = [];
         let currentWorkspace = 'default';
-        let currentEngine = 'searxng';
-        let settings = { themeMode: 'dark', searchNewTab: true };
+        let currentEngine = 'google';
+        let settings = { 
+            themeMode: 'dark', 
+            searchNewTab: true,
+            accentColor: '#3b82f6',
+            defaultEngine: 'google',
+            bgType: 'gradient',
+            bgUrl: ''
+        };
 
         async function init() {
             loadSettings();
@@ -433,7 +521,9 @@
         function loadSettings() {
             try {
                 const stored = localStorage.getItem('niuSettings');
-                if (stored) settings = JSON.parse(stored);
+                if (stored) {
+                    settings = { ...settings, ...JSON.parse(stored) };
+                }
             } catch (e) {
                 console.error('Settings load error:', e);
             }
@@ -441,7 +531,28 @@
 
         function applySettings() {
             document.documentElement.setAttribute('data-theme', settings.themeMode);
+            
+            if (settings.accentColor) {
+                document.documentElement.style.setProperty('--accent', settings.accentColor);
+            }
+
+            if (settings.defaultEngine && searchEngines[settings.defaultEngine]) {
+                currentEngine = settings.defaultEngine;
+                updateEngineDisplay();
+            }
+
+            if (settings.bgType === 'image' && settings.bgUrl) {
+                document.body.classList.add('custom-bg');
+                document.body.style.setProperty('--custom-bg', `url(${settings.bgUrl})`);
+            } else {
+                document.body.classList.remove('custom-bg');
+            }
         }
+
+        window.addEventListener('storage', () => {
+            loadSettings();
+            applySettings();
+        });
 
         async function loadWorkspaces() {
             try {
@@ -571,9 +682,43 @@
             }
         };
 
+        function updateEngineDisplay() {
+            const engineNames = {
+                google: 'Google',
+                searxng: 'SearXNG',
+                duckduckgo: 'DuckDuckGo',
+                youtube: 'YouTube'
+            };
+            document.getElementById('currentEngine').textContent = engineNames[currentEngine] || 'Google';
+            
+            document.querySelectorAll('.engine-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.engine === currentEngine);
+            });
+        }
+
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
+            const engineSelector = document.getElementById('engineSelector');
+            const engineDropdown = document.getElementById('engineDropdown');
             
+            engineSelector.addEventListener('click', (e) => {
+                e.stopPropagation();
+                engineDropdown.classList.toggle('show');
+            });
+
+            document.addEventListener('click', () => {
+                engineDropdown.classList.remove('show');
+            });
+
+            engineDropdown.addEventListener('click', (e) => {
+                const option = e.target.closest('.engine-option');
+                if (option) {
+                    currentEngine = option.dataset.engine;
+                    updateEngineDisplay();
+                    engineDropdown.classList.remove('show');
+                }
+            });
+
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     const query = e.target.value.trim();
@@ -594,14 +739,6 @@
                         e.target.value = '';
                     }
                 }
-            });
-
-            document.querySelectorAll('.engine-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentEngine = btn.dataset.engine;
-                    document.querySelectorAll('.engine-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
             });
 
             document.addEventListener('keydown', (e) => {
@@ -719,6 +856,8 @@
                         const index = bookmarks.findIndex(b => b.id == id);
                         if (index !== -1) bookmarks[index] = updated;
                         showToast('✅ Updated!');
+                    } else {
+                        throw new Error('Update failed');
                     }
                 } else {
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
@@ -736,6 +875,8 @@
                         const [newBookmark] = await response.json();
                         bookmarks.push(newBookmark);
                         showToast('✅ Added!');
+                    } else {
+                        throw new Error('Create failed');
                     }
                 }
                 
