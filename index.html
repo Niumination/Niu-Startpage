@@ -1,469 +1,4 @@
-// Sync workspaces from Supabase
-        async function syncWorkspacesFromSupabase() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    workspaces = data;
-                    localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
-                    
-                    // Check if we need to switch to a specific workspace
-                    const switchTo = localStorage.getItem('switchToWorkspace');
-                    if (switchTo) {
-                        currentWorkspace = switchTo;
-                        localStorage.removeItem('switchToWorkspace');
-                    }
-                }
-            } catch (error) {
-                console.error('Error syncing workspaces:', error);
-                // Fallback to localStorage
-                const stored = localStorage.getItem('niuWorkspaces');
-                workspaces = stored ? JSON.parse(stored) : [
-                    { id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }
-                ];
-            }
-        }
-
-        // Render workspace tabs with shortcuts
-        function renderWorkspaceTabs() {
-            const container = document.getElementById('workspaceTabs');
-            container.innerHTML = workspaces.map((ws, idx) => `
-                <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
-                     data-workspace="${ws.id}"
-                     style="border-color: ${ws.id === currentWorkspace ? ws.color : 'rgba(255, 255, 255, 0.15)'}">
-                    ${ws.icon} ${ws.name}
-                    ${idx < 9 ? `<span class="workspace-shortcut">${idx + 1}</span>` : ''}
-                </div>
-            `).join('');
-        }
-
-        // Load bookmarks from Supabase
-        async function loadBookmarksFromSupabase() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (!response.ok) throw new Error('Failed to load');
-                
-                const data = await response.json();
-                bookmarks = data.map(item => ({
-                    id: item.id,
-                    title: item.title,
-                    url: item.url,
-                    chord: item.chord,
-                    workspace: item.workspace || 'default'
-                }));
-                
-                localStorage.setItem('lastSyncOk', 'true');
-                renderBookmarks();
-            } catch (error) {
-                console.error('Load error:', error);
-                localStorage.setItem('lastSyncOk', 'false');
-            }
-        }
-
-        // Render bookmarks
-        function renderBookmarks() {
-            const container = document.getElementById('bookmarks');
-            const filtered = bookmarks.filter(b => b.workspace === currentWorkspace);
-            
-            container.className = 'bookmarks';
-            if (settings.cardSize) {
-                container.classList.add('size-' + settings.cardSize);
-            }
-            
-            if (filtered.length === 0) {
-                const currentWs = workspaces.find(w => w.id === currentWorkspace);
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">${currentWs ? currentWs.icon : '📚'}</div>
-                        <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">No bookmarks in ${currentWs ? currentWs.name : 'this workspace'} yet</h3>
-                        <p>Click "Add Bookmark" to create one!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = filtered.map(b => `
-                <div class="bookmark-card ${settings.cardStyle ? 'style-' + settings.cardStyle : ''}">
-                    <a href="${b.url}" class="bookmark-link" target="_blank" rel="noopener noreferrer">
-                        <div class="bookmark-title">
-                            <span>${b.title}</span>
-                            ${b.chord ? `<span class="bookmark-chord">${b.chord}</span>` : ''}
-                        </div>
-                        ${settings.showUrls ? `<div class="bookmark-url show">${b.url}</div>` : `<div class="bookmark-url">${b.url}</div>`}
-                    </a>
-                    <div class="bookmark-actions">
-                        <button class="icon-btn" onclick="editBookmark(${b.id})" title="Edit bookmark">
-                            ✏️
-                        </button>
-                        <button class="icon-btn delete" onclick="deleteBookmark(${b.id})" title="Delete bookmark">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Edit bookmark
-        window.editBookmark = async function(id) {
-            const bookmark = bookmarks.find(b => b.id === id);
-            if (!bookmark) return;
-            
-            document.getElementById('modalTitle').textContent = 'Edit Bookmark';
-            document.getElementById('editBookmarkId').value = id;
-            document.getElementById('bookmarkTitle').value = bookmark.title;
-            document.getElementById('bookmarkUrl').value = bookmark.url;
-            document.getElementById('bookmarkChord').value = bookmark.chord || '';
-            
-            const workspaceSelect = document.getElementById('bookmarkWorkspace');
-            workspaceSelect.innerHTML = workspaces.map(ws => 
-                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
-            ).join('');
-            
-            document.getElementById('bookmarkModal').classList.add('active');
-            document.getElementById('bookmarkTitle').focus();
-        };
-
-        // Delete bookmark
-        window.deleteBookmark = async function(id) {
-            if (!confirm('Delete this bookmark?')) return;
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    bookmarks = bookmarks.filter(b => b.id !== id);
-                    renderBookmarks();
-                    showToast('🗑️ Bookmark deleted');
-                } else {
-                    throw new Error('Failed to delete');
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-                showToast('❌ Failed to delete bookmark');
-            }
-        };
-
-        // Setup event listeners
-        function setupEventListeners() {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('keydown', handleSearch);
-            searchInput.addEventListener('input', handleChordInput);
-
-            // Search engine buttons
-            document.querySelectorAll('.engine-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentEngine = btn.dataset.engine;
-                    document.querySelectorAll('.engine-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
-            });
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                // Alt + key for search engines
-                if (e.altKey) {
-                    const engineBtn = document.querySelector(`[data-key="${e.key}"]`);
-                    if (engineBtn) {
-                        e.preventDefault();
-                        engineBtn.click();
-                        searchInput.focus();
-                    }
-                }
-                
-                // Number keys (1-9) for workspace switching
-                if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey && document.activeElement !== searchInput) {
-                    const index = parseInt(e.key) - 1;
-                    if (index < workspaces.length) {
-                        switchWorkspace(workspaces[index].id);
-                    }
-                }
-                
-                // Focus search with =
-                if (e.key === '=' && document.activeElement !== searchInput) {
-                    e.preventDefault();
-                    searchInput.focus();
-                }
-
-                // Close modal with Escape
-                if (e.key === 'Escape') {
-                    closeBookmarkModal();
-                }
-            });
-
-            // Theme toggle
-            document.getElementById('themeToggle').addEventListener('click', () => {
-                settings.themeMode = settings.themeMode === 'dark' ? 'light' : 'dark';
-                localStorage.setItem('niuSettings', JSON.stringify(settings));
-                applySettings();
-                showToast(settings.themeMode === 'dark' ? '🌙 Dark mode' : '☀️ Light mode');
-            });
-
-            // Add bookmark
-            document.getElementById('addBookmarkBtn').addEventListener('click', openAddBookmarkModal);
-            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
-            document.getElementById('cancelBookmark').addEventListener('click', closeBookmarkModal);
-
-            // Load from Supabase
-            document.getElementById('loadBtn').addEventListener('click', async () => {
-                showToast('📥 Loading...');
-                await syncWorkspacesFromSupabase();
-                await loadBookmarksFromSupabase();
-                renderWorkspaceTabs();
-                showToast('✅ Loaded from Supabase!');
-            });
-
-            // Sync with Supabase
-            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase);
-
-            // Workspace tabs
-            document.getElementById('workspaceTabs').addEventListener('click', (e) => {
-                if (e.target.classList.contains('workspace-tab') || e.target.closest('.workspace-tab')) {
-                    const tab = e.target.classList.contains('workspace-tab') ? e.target : e.target.closest('.workspace-tab');
-                    switchWorkspace(tab.dataset.workspace);
-                }
-            });
-
-            // Close modal on background click
-            document.getElementById('bookmarkModal').addEventListener('click', (e) => {
-                if (e.target.id === 'bookmarkModal') {
-                    closeBookmarkModal();
-                }
-            });
-
-            // Listen for settings changes
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'niuSettings') {
-                    loadSettings();
-                    applySettings();
-                    renderBookmarks();
-                }
-            });
-        }
-
-        // Switch workspace
-        function switchWorkspace(workspaceId) {
-            currentWorkspace = workspaceId;
-            const currentWs = workspaces.find(w => w.id === workspaceId);
-            
-            document.querySelectorAll('.workspace-tab').forEach(t => {
-                t.classList.remove('active');
-                t.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-            });
-            
-            const tab = document.querySelector(`[data-workspace="${workspaceId}"]`);
-            if (tab) {
-                tab.classList.add('active');
-                if (currentWs) {
-                    tab.style.borderColor = currentWs.color;
-                }
-            }
-            
-            renderBookmarks();
-        }
-
-        // Handle search
-        function handleSearch(e) {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim();
-                if (query) {
-                    const url = searchEngines[currentEngine] + encodeURIComponent(query);
-                    if (settings.searchNewTab) {
-                        window.open(url, '_blank');
-                    } else {
-                        window.location.href = url;
-                    }
-                    e.target.value = '';
-                }
-            }
-        }
-
-        // Handle chord input
-        function handleChordInput(e) {
-            const input = e.target.value.toUpperCase();
-            
-            if (input.length === 2) {
-                const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === input);
-                if (bookmark) {
-                    window.open(bookmark.url, '_blank');
-                    e.target.value = '';
-                    return;
-                }
-            }
-            
-            clearTimeout(chordTimeout);
-            chordTimeout = setTimeout(() => {
-                chordBuffer = '';
-            }, 1000);
-        }
-
-        // Modal functions
-        function openAddBookmarkModal() {
-            document.getElementById('modalTitle').textContent = 'Add Bookmark';
-            document.getElementById('editBookmarkId').value = '';
-            document.getElementById('bookmarkTitle').value = '';
-            document.getElementById('bookmarkUrl').value = '';
-            document.getElementById('bookmarkChord').value = '';
-            
-            const workspaceSelect = document.getElementById('bookmarkWorkspace');
-            workspaceSelect.innerHTML = workspaces.map(ws => 
-                `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
-            ).join('');
-            
-            document.getElementById('bookmarkModal').classList.add('active');
-            document.getElementById('bookmarkTitle').focus();
-        }
-
-        function closeBookmarkModal() {
-            document.getElementById('bookmarkModal').classList.remove('active');
-        }
-
-        async function saveBookmark() {
-            const id = document.getElementById('editBookmarkId').value;
-            const title = document.getElementById('bookmarkTitle').value.trim();
-            const url = document.getElementById('bookmarkUrl').value.trim();
-            const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
-            const workspace = document.getElementById('bookmarkWorkspace').value;
-            
-            if (!title || !url) {
-                showToast('❌ Title and URL are required!');
-                return;
-            }
-            
-            // Add protocol if missing
-            let fullUrl = url;
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                fullUrl = 'https://' + url;
-            }
-            
-            // Check if chord already exists (except for current bookmark when editing)
-            if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord && b.id != id)) {
-                showToast('❌ Chord already exists!');
-                return;
-            }
-            
-            try {
-                if (id) {
-                    // Update existing bookmark
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
-                        body: JSON.stringify({
-                            title,
-                            url: fullUrl,
-                            chord: chord || null,
-                            workspace
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const [updated] = await response.json();
-                        const index = bookmarks.findIndex(b => b.id == id);
-                        if (index !== -1) {
-                            bookmarks[index] = {
-                                id: updated.id,
-                                title: updated.title,
-                                url: updated.url,
-                                chord: updated.chord,
-                                workspace: updated.workspace
-                            };
-                        }
-                        showToast('✅ Bookmark updated!');
-                    } else {
-                        throw new Error('Failed to update');
-                    }
-                } else {
-                    // Add new bookmark
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
-                        body: JSON.stringify({
-                            title,
-                            url: fullUrl,
-                            chord: chord || null,
-                            workspace
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const [newBookmark] = await response.json();
-                        bookmarks.push({
-                            id: newBookmark.id,
-                            title: newBookmark.title,
-                            url: newBookmark.url,
-                            chord: newBookmark.chord,
-                            workspace: newBookmark.workspace
-                        });
-                        showToast('✅ Bookmark added!');
-                    } else {
-                        throw new Error('Failed to add');
-                    }
-                }
-                
-                renderBookmarks();
-                closeBookmarkModal();
-                
-            } catch (error) {
-                console.error('Save error:', error);
-                showToast('❌ Failed to save bookmark');
-            }
-        }
-
-        async function syncWithSupabase() {
-            try {
-                showToast('🔄 Syncing with Supabase...');
-                await syncWorkspacesFromSupabase();
-                await loadBookmarksFromSupabase();
-                renderWorkspaceTabs();
-                localStorage.setItem('lastSyncOk', 'true');
-                showToast('✅ Synced with Supabase!');
-            } catch (error) {
-                console.error('Sync error:', error);
-                localStorage.setItem('lastSyncOk', 'false');
-                showToast('❌ Failed to sync with Supabase');
-            }
-        }
-
-        // Show toast notification
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        // Initialize on load
-        init();
-    </script>
-</body>
-</html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -478,27 +13,23 @@
 
         :root {
             --bg-primary: #0a0a0a;
-            --bg-secondary: #1a1a1a;
             --text-primary: #e0e0e0;
             --text-secondary: #a0a0a0;
             --accent: #3b82f6;
             --accent-hover: #2563eb;
-            --border: #2a2a2a;
         }
 
         [data-theme="light"] {
             --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
             --text-primary: #1a1a1a;
             --text-secondary: #6b6b6b;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --border: #e0e0e0;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, #16213e 100%);
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
@@ -506,45 +37,6 @@
             align-items: center;
             justify-content: center;
             padding: 2rem;
-            transition: background 0.3s, color 0.3s;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body.bg-gradient {
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%),
-                linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, #16213e 100%);
-        }
-
-        body.bg-minimal {
-            background: var(--bg-primary);
-        }
-
-        body.bg-solid {
-            background: var(--bg-primary);
-        }
-
-        body.animations-enabled::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
-            animation: backgroundFloat 20s ease-in-out infinite;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        @keyframes backgroundFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
         }
 
         .container {
@@ -556,15 +48,11 @@
             border-radius: 24px;
             padding: 2rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            position: relative;
-            z-index: 1;
         }
-
-        .container.compact { padding: 1.5rem; }
 
         .header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
 
         .header h1 {
@@ -573,7 +61,6 @@
             background: linear-gradient(135deg, var(--accent), #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .header p {
@@ -581,7 +68,6 @@
             font-size: 0.9rem;
         }
 
-        /* Workspace Tabs */
         .workspace-tabs {
             display: flex;
             gap: 0.5rem;
@@ -593,7 +79,7 @@
         .workspace-tab {
             padding: 0.5rem 1rem;
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             color: var(--text-secondary);
             cursor: pointer;
@@ -606,7 +92,7 @@
 
         .workspace-tab:hover {
             background: rgba(255, 255, 255, 0.12);
-            border-color: var(--accent);
+            transform: translateY(-2px);
         }
 
         .workspace-tab.active {
@@ -618,7 +104,7 @@
         .workspace-shortcut {
             font-size: 0.75rem;
             opacity: 0.7;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.2);
             padding: 0.1rem 0.4rem;
             border-radius: 4px;
         }
@@ -638,40 +124,26 @@
         .engine-btn {
             padding: 0.5rem 1rem;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px;
             color: var(--text-primary);
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 0.9rem;
         }
 
-        .engine-btn:hover {
+        .engine-btn:hover, .engine-btn.active {
             background: var(--accent);
             border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .engine-btn.active {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .search-box {
-            position: relative;
         }
 
         #searchInput {
             width: 100%;
             padding: 1rem 1.5rem;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 16px;
             color: var(--text-primary);
             font-size: 1.1rem;
-            transition: all 0.3s;
         }
 
         #searchInput:focus {
@@ -687,56 +159,31 @@
             margin-bottom: 2rem;
         }
 
-        .bookmarks.size-small {
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-        }
-
-        .bookmarks.size-large {
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 2rem;
-        }
-
         .bookmark-card {
             background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 16px;
             padding: 1.5rem;
             transition: all 0.3s;
-            position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .bookmark-card.style-solid {
-            background: var(--bg-secondary);
-            backdrop-filter: none;
-        }
-
-        .bookmark-card.style-outlined {
-            background: transparent;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+        .bookmark-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .bookmark-link {
             flex: 1;
             text-decoration: none;
             color: var(--text-primary);
-            cursor: pointer;
-        }
-
-        .animations-enabled .bookmark-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            border-color: var(--accent);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-            background: rgba(255, 255, 255, 0.12);
         }
 
         .bookmark-title {
             font-weight: 600;
-            margin-bottom: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -748,20 +195,7 @@
             color: white;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            white-space: nowrap;
         }
-
-        .bookmark-url {
-            display: none;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 0.5rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .bookmark-url.show { display: block; }
 
         .bookmark-actions {
             display: flex;
@@ -777,13 +211,11 @@
             padding: 0.5rem;
             border-radius: 6px;
             transition: all 0.2s;
-            font-size: 1rem;
         }
 
         .icon-btn:hover {
             background: var(--accent);
             color: white;
-            transform: scale(1.1);
         }
 
         .icon-btn.delete:hover {
@@ -794,59 +226,23 @@
             display: flex;
             gap: 1rem;
             justify-content: center;
-            margin-bottom: 2rem;
             flex-wrap: wrap;
         }
 
         .btn {
             padding: 0.75rem 1.5rem;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px;
             color: var(--text-primary);
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 0.9rem;
             text-decoration: none;
-            display: inline-block;
         }
 
         .btn:hover {
             background: var(--accent);
             border-color: var(--accent);
-        }
-
-        .shortcuts-info {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            padding: 1.5rem;
-            font-size: 0.85rem;
-            line-height: 1.6;
-        }
-
-        .shortcuts-info h3 {
-            margin-bottom: 1rem;
-            color: var(--accent);
-        }
-
-        .shortcut-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            padding: 0.5rem;
-            background: var(--bg-primary);
-            border-radius: 6px;
-        }
-
-        .key {
-            background: var(--accent);
-            color: white;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-family: monospace;
         }
 
         .modal {
@@ -867,7 +263,7 @@
         }
 
         .modal-content {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(26, 26, 46, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
@@ -895,7 +291,6 @@
             width: 100%;
             padding: 0.75rem;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px;
             color: var(--text-primary);
@@ -933,9 +328,11 @@
             opacity: 1;
         }
 
-        .font-small { font-size: 14px; }
-        .font-medium { font-size: 16px; }
-        .font-large { font-size: 18px; }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
 
         @media (max-width: 768px) {
             .bookmarks {
@@ -948,69 +345,35 @@
     <div class="container">
         <div class="header">
             <h1>📚 Niu Startpage</h1>
-            <p>Press <span class="key">=</span> to focus search • Use <span class="key">1-9</span> to switch workspaces • Use bookmark chords for quick access</p>
+            <p>Press <kbd>=</kbd> to search • <kbd>1-9</kbd> to switch workspaces</p>
         </div>
 
-        <!-- Workspace Tabs -->
-        <div class="workspace-tabs" id="workspaceTabs"></div>
+        <div class="workspace-tabs" id="workspaceTabs">
+            <div class="loading">Loading workspaces...</div>
+        </div>
 
         <div class="search-container">
-            <div class="search-engines" id="searchEngines">
-                <button class="engine-btn active" data-engine="searxng" data-key="a">SearXNG</button>
-                <button class="engine-btn" data-engine="google" data-key="s">Google</button>
-                <button class="engine-btn" data-engine="duckduckgo" data-key="d">DuckDuckGo</button>
-                <button class="engine-btn" data-engine="youtube" data-key="f">YouTube</button>
+            <div class="search-engines">
+                <button class="engine-btn active" data-engine="searxng">SearXNG</button>
+                <button class="engine-btn" data-engine="google">Google</button>
+                <button class="engine-btn" data-engine="duckduckgo">DuckDuckGo</button>
+                <button class="engine-btn" data-engine="youtube">YouTube</button>
             </div>
-            <div class="search-box">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="Search the web or type bookmark chord..."
-                    autocomplete="off"
-                >
-            </div>
+            <input type="text" id="searchInput" placeholder="Search or enter chord..." autocomplete="off">
         </div>
 
-        <div class="bookmarks" id="bookmarks"></div>
+        <div class="bookmarks" id="bookmarks">
+            <div class="loading">Loading bookmarks...</div>
+        </div>
 
         <div class="controls">
-            <a class="btn" href="navigation.html" target="_blank">📊 Navigation</a>
+            <a class="btn" href="navigation.html">📊 Navigation</a>
             <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
             <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
-            <button class="btn" id="loadBtn">📥 Load from Supabase</button>
-            <button class="btn" id="syncBtn">🔄 Sync with Supabase</button>
-        </div>
-
-        <div class="shortcuts-info">
-            <h3>⌨️ Keyboard Shortcuts</h3>
-            <div class="shortcut-item">
-                <span>Focus search</span>
-                <span class="key">=</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Switch workspaces</span>
-                <span class="key">1-9</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Search with SearXNG</span>
-                <span class="key">Alt + A</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Search with Google</span>
-                <span class="key">Alt + S</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Search with DuckDuckGo</span>
-                <span class="key">Alt + D</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Search with YouTube</span>
-                <span class="key">Alt + F</span>
-            </div>
+            <button class="btn" id="syncBtn">🔄 Sync</button>
         </div>
     </div>
 
-    <!-- Add/Edit Bookmark Modal -->
     <div class="modal" id="bookmarkModal">
         <div class="modal-content">
             <h2 id="modalTitle">Add Bookmark</h2>
@@ -1041,11 +404,9 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Configuration
         const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
 
-        // Search engines
         const searchEngines = {
             searxng: 'https://searx.fmhy.net/search?q=',
             google: 'https://www.google.com/search?q=',
@@ -1053,90 +414,38 @@
             youtube: 'https://www.youtube.com/results?search_query='
         };
 
-        // Global variables
         let bookmarks = [];
         let workspaces = [];
         let currentWorkspace = 'default';
         let currentEngine = 'searxng';
-        let chordBuffer = '';
-        let chordTimeout = null;
-        let settings = {};
-        let editingBookmarkIndex = -1;
+        let settings = { themeMode: 'dark', searchNewTab: true };
 
-        // Initialize
         async function init() {
             loadSettings();
             applySettings();
-            await syncWorkspacesFromSupabase();
-            await loadBookmarksFromSupabase();
+            await loadWorkspaces();
+            await loadBookmarks();
             renderWorkspaceTabs();
             renderBookmarks();
             setupEventListeners();
         }
 
-        // Load settings from localStorage
         function loadSettings() {
             try {
                 const stored = localStorage.getItem('niuSettings');
-                settings = stored ? JSON.parse(stored) : {
-                    themeMode: 'dark',
-                    accentColor: '#3b82f6',
-                    bgStyle: 'gradient',
-                    cardSize: 'medium',
-                    cardStyle: 'glass',
-                    showAnimations: true,
-                    defaultEngine: 'searxng',
-                    searchNewTab: true,
-                    fontSize: 'medium',
-                    showUrls: false,
-                    compactMode: false
-                };
+                if (stored) settings = JSON.parse(stored);
             } catch (e) {
-                settings = { themeMode: 'dark' };
+                console.error('Settings load error:', e);
             }
         }
 
-        // Apply settings to page
         function applySettings() {
             document.documentElement.setAttribute('data-theme', settings.themeMode);
-            
-            if (settings.accentColor) {
-                document.documentElement.style.setProperty('--accent', settings.accentColor);
-            }
-            
-            document.body.className = '';
-            if (settings.bgStyle === 'gradient') {
-                document.body.classList.add('bg-gradient');
-            } else if (settings.bgStyle === 'minimal') {
-                document.body.classList.add('bg-minimal');
-            } else if (settings.bgStyle === 'solid') {
-                document.body.classList.add('bg-solid');
-            }
-            
-            if (settings.showAnimations) {
-                document.body.classList.add('animations-enabled');
-            }
-            
-            if (settings.fontSize) {
-                document.body.classList.add('font-' + settings.fontSize);
-            }
-            
-            if (settings.compactMode) {
-                document.querySelector('.container').classList.add('compact');
-            }
-            
-            if (settings.defaultEngine) {
-                currentEngine = settings.defaultEngine;
-                document.querySelectorAll('.engine-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.engine === currentEngine);
-                });
-            }
         }
 
-        // Sync workspaces from Supabase
-        async function syncWorkspacesFromSupabase() {
+        async function loadWorkspaces() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=workspace`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
                     headers: {
                         'apikey': SUPABASE_KEY,
                         'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -1144,48 +453,21 @@
                 });
                 
                 if (response.ok) {
-                    const data = await response.json();
-                    const uniqueWorkspaces = [...new Set(data.map(b => b.workspace))];
-                    
-                    // Create workspace objects
-                    workspaces = uniqueWorkspaces.map(ws => ({
-                        id: ws,
-                        name: ws.charAt(0).toUpperCase() + ws.slice(1).replace(/_/g, ' ')
-                    }));
-                    
-                    // Ensure default is first
-                    workspaces.sort((a, b) => {
-                        if (a.id === 'default') return -1;
-                        if (b.id === 'default') return 1;
-                        return a.name.localeCompare(b.name);
-                    });
-                    
-                    localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
+                    workspaces = await response.json();
+                    if (workspaces.length === 0) {
+                        workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
+                    }
+                } else {
+                    throw new Error('Failed to load workspaces');
                 }
             } catch (error) {
-                console.error('Error syncing workspaces:', error);
-                // Fallback to localStorage
-                const stored = localStorage.getItem('niuWorkspaces');
-                workspaces = stored ? JSON.parse(stored) : [
-                    { id: 'default', name: 'Default' }
-                ];
+                console.error('Load workspaces error:', error);
+                workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
+                showToast('⚠️ Using offline workspaces');
             }
         }
 
-        // Render workspace tabs with shortcuts
-        function renderWorkspaceTabs() {
-            const container = document.getElementById('workspaceTabs');
-            container.innerHTML = workspaces.map((ws, idx) => `
-                <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
-                     data-workspace="${ws.id}">
-                    ${ws.name}
-                    ${idx < 9 ? `<span class="workspace-shortcut">${idx + 1}</span>` : ''}
-                </div>
-            `).join('');
-        }
-
-        // Load bookmarks from Supabase
-        async function loadBookmarksFromSupabase() {
+        async function loadBookmarks() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
                     headers: {
@@ -1194,67 +476,62 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Failed to load');
-                
-                const data = await response.json();
-                bookmarks = data.map(item => ({
-                    id: item.id,
-                    title: item.title,
-                    url: item.url,
-                    chord: item.chord,
-                    workspace: item.workspace || 'default'
-                }));
-                
-                localStorage.setItem('lastSyncOk', 'true');
-                renderBookmarks();
+                if (response.ok) {
+                    bookmarks = await response.json();
+                } else {
+                    throw new Error('Failed to load bookmarks');
+                }
             } catch (error) {
-                console.error('Load error:', error);
-                localStorage.setItem('lastSyncOk', 'false');
+                console.error('Load bookmarks error:', error);
+                showToast('⚠️ Failed to load bookmarks');
             }
         }
 
-        // Render bookmarks
+        function renderWorkspaceTabs() {
+            const container = document.getElementById('workspaceTabs');
+            container.innerHTML = workspaces.map((ws, idx) => `
+                <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
+                     data-workspace="${ws.id}"
+                     style="border-color: ${ws.id === currentWorkspace ? ws.color : 'rgba(255, 255, 255, 0.15)'}">
+                    ${ws.icon} ${ws.name}
+                    ${idx < 9 ? `<span class="workspace-shortcut">${idx + 1}</span>` : ''}
+                </div>
+            `).join('');
+        }
+
         function renderBookmarks() {
             const container = document.getElementById('bookmarks');
             const filtered = bookmarks.filter(b => b.workspace === currentWorkspace);
             
-            container.className = 'bookmarks';
-            if (settings.cardSize) {
-                container.classList.add('size-' + settings.cardSize);
-            }
-            
             if (filtered.length === 0) {
+                const ws = workspaces.find(w => w.id === currentWorkspace);
                 container.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        No bookmarks in this workspace yet. Click "Add Bookmark" to create one!
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">${ws ? ws.icon : '📚'}</div>
+                        <h3 style="color: var(--text-primary);">No bookmarks in ${ws ? ws.name : 'this workspace'}</h3>
+                        <p>Click "Add Bookmark" to create one!</p>
                     </div>
                 `;
                 return;
             }
             
             container.innerHTML = filtered.map(b => `
-                <div class="bookmark-card ${settings.cardStyle ? 'style-' + settings.cardStyle : ''}">
-                    <a href="${b.url}" class="bookmark-link" target="_blank" rel="noopener noreferrer">
+                <div class="bookmark-card">
+                    <a href="${b.url}" class="bookmark-link" target="_blank" rel="noopener">
                         <div class="bookmark-title">
                             <span>${b.title}</span>
                             ${b.chord ? `<span class="bookmark-chord">${b.chord}</span>` : ''}
                         </div>
-                        ${settings.showUrls ? `<div class="bookmark-url show">${b.url}</div>` : `<div class="bookmark-url">${b.url}</div>`}
                     </a>
                     <div class="bookmark-actions">
-                        <button class="icon-btn" onclick="editBookmark(${b.id})" title="Edit bookmark">
-                            ✏️
-                        </button>
-                        <button class="icon-btn delete" onclick="deleteBookmark(${b.id})" title="Delete bookmark">
-                            🗑️
-                        </button>
+                        <button class="icon-btn" onclick="editBookmark(${b.id})">✏️</button>
+                        <button class="icon-btn delete" onclick="deleteBookmark(${b.id})">🗑️</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Edit bookmark
-        window.editBookmark = async function(id) {
+        window.editBookmark = function(id) {
             const bookmark = bookmarks.find(b => b.id === id);
             if (!bookmark) return;
             
@@ -1264,16 +541,14 @@
             document.getElementById('bookmarkUrl').value = bookmark.url;
             document.getElementById('bookmarkChord').value = bookmark.chord || '';
             
-            const workspaceSelect = document.getElementById('bookmarkWorkspace');
-            workspaceSelect.innerHTML = workspaces.map(ws => 
-                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.name}</option>`
+            const select = document.getElementById('bookmarkWorkspace');
+            select.innerHTML = workspaces.map(ws => 
+                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
             ).join('');
             
             document.getElementById('bookmarkModal').classList.add('active');
-            document.getElementById('bookmarkTitle').focus();
         };
 
-        // Delete bookmark
         window.deleteBookmark = async function(id) {
             if (!confirm('Delete this bookmark?')) return;
             
@@ -1289,23 +564,38 @@
                 if (response.ok) {
                     bookmarks = bookmarks.filter(b => b.id !== id);
                     renderBookmarks();
-                    showToast('🗑️ Bookmark deleted');
-                } else {
-                    throw new Error('Failed to delete');
+                    showToast('✅ Deleted');
                 }
             } catch (error) {
-                console.error('Delete error:', error);
-                showToast('❌ Failed to delete bookmark');
+                showToast('❌ Delete failed');
             }
         };
 
-        // Setup event listeners
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('keydown', handleSearch);
-            searchInput.addEventListener('input', handleChordInput);
+            
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query) {
+                        const url = searchEngines[currentEngine] + encodeURIComponent(query);
+                        window.open(url, settings.searchNewTab ? '_blank' : '_self');
+                        e.target.value = '';
+                    }
+                }
+            });
 
-            // Search engine buttons
+            searchInput.addEventListener('input', (e) => {
+                const input = e.target.value.toUpperCase();
+                if (input.length === 2) {
+                    const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === input);
+                    if (bookmark) {
+                        window.open(bookmark.url, '_blank');
+                        e.target.value = '';
+                    }
+                }
+            });
+
             document.querySelectorAll('.engine-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     currentEngine = btn.dataset.engine;
@@ -1314,151 +604,79 @@
                 });
             });
 
-            // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
-                // Alt + key for search engines
-                if (e.altKey) {
-                    const engineBtn = document.querySelector(`[data-key="${e.key}"]`);
-                    if (engineBtn) {
-                        e.preventDefault();
-                        engineBtn.click();
-                        searchInput.focus();
+                if (e.key >= '1' && e.key <= '9' && document.activeElement !== searchInput) {
+                    const idx = parseInt(e.key) - 1;
+                    if (idx < workspaces.length) {
+                        switchWorkspace(workspaces[idx].id);
                     }
                 }
                 
-                // Number keys (1-9) for workspace switching
-                if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey && document.activeElement !== searchInput) {
-                    const index = parseInt(e.key) - 1;
-                    if (index < workspaces.length) {
-                        switchWorkspace(workspaces[index].id);
-                    }
-                }
-                
-                // Focus search with =
                 if (e.key === '=' && document.activeElement !== searchInput) {
                     e.preventDefault();
                     searchInput.focus();
                 }
-
-                // Close modal with Escape
+                
                 if (e.key === 'Escape') {
-                    closeBookmarkModal();
+                    document.getElementById('bookmarkModal').classList.remove('active');
                 }
             });
 
-            // Theme toggle
             document.getElementById('themeToggle').addEventListener('click', () => {
                 settings.themeMode = settings.themeMode === 'dark' ? 'light' : 'dark';
                 localStorage.setItem('niuSettings', JSON.stringify(settings));
                 applySettings();
-                showToast(settings.themeMode === 'dark' ? '🌙 Dark mode' : '☀️ Light mode');
+                showToast(settings.themeMode === 'dark' ? '🌙 Dark' : '☀️ Light');
             });
 
-            // Add bookmark
-            document.getElementById('addBookmarkBtn').addEventListener('click', openAddBookmarkModal);
+            document.getElementById('addBookmarkBtn').addEventListener('click', () => {
+                document.getElementById('modalTitle').textContent = 'Add Bookmark';
+                document.getElementById('editBookmarkId').value = '';
+                document.getElementById('bookmarkTitle').value = '';
+                document.getElementById('bookmarkUrl').value = '';
+                document.getElementById('bookmarkChord').value = '';
+                
+                const select = document.getElementById('bookmarkWorkspace');
+                select.innerHTML = workspaces.map(ws => 
+                    `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
+                ).join('');
+                
+                document.getElementById('bookmarkModal').classList.add('active');
+            });
+
             document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
-            document.getElementById('cancelBookmark').addEventListener('click', closeBookmarkModal);
-
-            // Load from Supabase
-            document.getElementById('loadBtn').addEventListener('click', async () => {
-                showToast('📥 Loading...');
-                await syncWorkspacesFromSupabase();
-                await loadBookmarksFromSupabase();
-                renderWorkspaceTabs();
-                showToast('✅ Loaded from Supabase!');
+            
+            document.getElementById('cancelBookmark').addEventListener('click', () => {
+                document.getElementById('bookmarkModal').classList.remove('active');
             });
 
-            // Sync with Supabase
-            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase);
+            document.getElementById('syncBtn').addEventListener('click', async () => {
+                showToast('🔄 Syncing...');
+                await loadWorkspaces();
+                await loadBookmarks();
+                renderWorkspaceTabs();
+                renderBookmarks();
+                showToast('✅ Synced!');
+            });
 
-            // Workspace tabs
             document.getElementById('workspaceTabs').addEventListener('click', (e) => {
-                if (e.target.classList.contains('workspace-tab') || e.target.closest('.workspace-tab')) {
-                    const tab = e.target.classList.contains('workspace-tab') ? e.target : e.target.closest('.workspace-tab');
+                const tab = e.target.closest('.workspace-tab');
+                if (tab) {
                     switchWorkspace(tab.dataset.workspace);
                 }
             });
 
-            // Close modal on background click
             document.getElementById('bookmarkModal').addEventListener('click', (e) => {
                 if (e.target.id === 'bookmarkModal') {
-                    closeBookmarkModal();
-                }
-            });
-
-            // Listen for settings changes
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'niuSettings') {
-                    loadSettings();
-                    applySettings();
-                    renderBookmarks();
+                    e.target.classList.remove('active');
                 }
             });
         }
 
-        // Switch workspace
-        function switchWorkspace(workspaceId) {
-            currentWorkspace = workspaceId;
-            document.querySelectorAll('.workspace-tab').forEach(t => t.classList.remove('active'));
-            const tab = document.querySelector(`[data-workspace="${workspaceId}"]`);
-            if (tab) tab.classList.add('active');
+        function switchWorkspace(id) {
+            currentWorkspace = id;
+            renderWorkspaceTabs();
             renderBookmarks();
-        }
-
-        // Handle search
-        function handleSearch(e) {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim();
-                if (query) {
-                    const url = searchEngines[currentEngine] + encodeURIComponent(query);
-                    if (settings.searchNewTab) {
-                        window.open(url, '_blank');
-                    } else {
-                        window.location.href = url;
-                    }
-                    e.target.value = '';
-                }
-            }
-        }
-
-        // Handle chord input
-        function handleChordInput(e) {
-            const input = e.target.value.toUpperCase();
-            
-            if (input.length === 2) {
-                const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === input);
-                if (bookmark) {
-                    window.open(bookmark.url, '_blank');
-                    e.target.value = '';
-                    return;
-                }
-            }
-            
-            clearTimeout(chordTimeout);
-            chordTimeout = setTimeout(() => {
-                chordBuffer = '';
-            }, 1000);
-        }
-
-        // Modal functions
-        function openAddBookmarkModal() {
-            document.getElementById('modalTitle').textContent = 'Add Bookmark';
-            document.getElementById('editBookmarkId').value = '';
-            document.getElementById('bookmarkTitle').value = '';
-            document.getElementById('bookmarkUrl').value = '';
-            document.getElementById('bookmarkChord').value = '';
-            
-            const workspaceSelect = document.getElementById('bookmarkWorkspace');
-            workspaceSelect.innerHTML = workspaces.map(ws => 
-                `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.name}</option>`
-            ).join('');
-            
-            document.getElementById('bookmarkModal').classList.add('active');
-            document.getElementById('bookmarkTitle').focus();
-        }
-
-        function closeBookmarkModal() {
-            document.getElementById('bookmarkModal').classList.remove('active');
         }
 
         async function saveBookmark() {
@@ -1469,17 +687,15 @@
             const workspace = document.getElementById('bookmarkWorkspace').value;
             
             if (!title || !url) {
-                showToast('❌ Title and URL are required!');
+                showToast('❌ Title and URL required!');
                 return;
             }
             
-            // Add protocol if missing
             let fullUrl = url;
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
                 fullUrl = 'https://' + url;
             }
             
-            // Check if chord already exists (except for current bookmark when editing)
             if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord && b.id != id)) {
                 showToast('❌ Chord already exists!');
                 return;
@@ -1487,7 +703,6 @@
             
             try {
                 if (id) {
-                    // Update existing bookmark
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
                         method: 'PATCH',
                         headers: {
@@ -1496,32 +711,16 @@
                             'Content-Type': 'application/json',
                             'Prefer': 'return=representation'
                         },
-                        body: JSON.stringify({
-                            title,
-                            url: fullUrl,
-                            chord: chord || null,
-                            workspace
-                        })
+                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
                     });
                     
                     if (response.ok) {
                         const [updated] = await response.json();
                         const index = bookmarks.findIndex(b => b.id == id);
-                        if (index !== -1) {
-                            bookmarks[index] = {
-                                id: updated.id,
-                                title: updated.title,
-                                url: updated.url,
-                                chord: updated.chord,
-                                workspace: updated.workspace
-                            };
-                        }
-                        showToast('✅ Bookmark updated!');
-                    } else {
-                        throw new Error('Failed to update');
+                        if (index !== -1) bookmarks[index] = updated;
+                        showToast('✅ Updated!');
                     }
                 } else {
-                    // Add new bookmark
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
                         method: 'POST',
                         headers: {
@@ -1530,57 +729,24 @@
                             'Content-Type': 'application/json',
                             'Prefer': 'return=representation'
                         },
-                        body: JSON.stringify({
-                            title,
-                            url: fullUrl,
-                            chord: chord || null,
-                            workspace
-                        })
+                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
                     });
                     
                     if (response.ok) {
                         const [newBookmark] = await response.json();
-                        bookmarks.push({
-                            id: newBookmark.id,
-                            title: newBookmark.title,
-                            url: newBookmark.url,
-                            chord: newBookmark.chord,
-                            workspace: newBookmark.workspace
-                        });
-                        showToast('✅ Bookmark added!');
-                    } else {
-                        throw new Error('Failed to add');
+                        bookmarks.push(newBookmark);
+                        showToast('✅ Added!');
                     }
                 }
                 
-                // Refresh workspaces if new workspace was used
-                await syncWorkspacesFromSupabase();
-                renderWorkspaceTabs();
                 renderBookmarks();
-                closeBookmarkModal();
-                
+                document.getElementById('bookmarkModal').classList.remove('active');
             } catch (error) {
                 console.error('Save error:', error);
-                showToast('❌ Failed to save bookmark');
+                showToast('❌ Save failed');
             }
         }
 
-        async function syncWithSupabase() {
-            try {
-                showToast('🔄 Syncing with Supabase...');
-                await syncWorkspacesFromSupabase();
-                await loadBookmarksFromSupabase();
-                renderWorkspaceTabs();
-                localStorage.setItem('lastSyncOk', 'true');
-                showToast('✅ Synced with Supabase!');
-            } catch (error) {
-                console.error('Sync error:', error);
-                localStorage.setItem('lastSyncOk', 'false');
-                showToast('❌ Failed to sync with Supabase');
-            }
-        }
-
-        // Show toast notification
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -1588,7 +754,6 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Initialize on load
         init();
     </script>
 </body>
