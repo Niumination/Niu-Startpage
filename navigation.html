@@ -242,6 +242,51 @@
             border-color: var(--accent);
         }
 
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.2);
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: var(--accent);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
         .btn {
             padding: 0.6rem 1.2rem;
             background: var(--accent);
@@ -501,25 +546,72 @@
 
         <!-- Settings Panel -->
         <div class="panel" id="settingsPanel">
-            <h2>⚙️ Settings</h2>
-            <p>Customize your experience</p>
+            <h2>⚙️ Appearance & Customization</h2>
+            <p>Customize your startpage experience</p>
 
             <div class="settings-grid">
                 <div class="settings-card">
-                    <h3>🎨 Theme</h3>
+                    <h3>🎨 Theme & Colors</h3>
+                    
                     <div class="setting-item">
                         <label class="setting-label">Theme Mode</label>
                         <select class="setting-select" id="themeMode">
                             <option value="dark">Dark Mode</option>
                             <option value="light">Light Mode</option>
+                            <option value="auto">Auto (System)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">Accent Color</label>
+                        <input type="color" class="setting-input" id="accentColor" value="#3b82f6">
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">Background Style</label>
+                        <select class="setting-select" id="bgStyle">
+                            <option value="gradient">Gradient</option>
+                            <option value="solid">Solid Color</option>
+                            <option value="minimal">Minimal</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="settings-card">
-                    <h3>🔍 Search</h3>
+                    <h3>📐 Layout</h3>
+                    
                     <div class="setting-item">
-                        <label class="setting-label">Default Engine</label>
+                        <label class="setting-label">Bookmark Card Size</label>
+                        <select class="setting-select" id="cardSize">
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">Card Style</label>
+                        <select class="setting-select" id="cardStyle">
+                            <option value="glass">Glassmorphism</option>
+                            <option value="solid">Solid</option>
+                            <option value="outlined">Outlined</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">Show Animations</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showAnimations" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>🔍 Search</h3>
+                    
+                    <div class="setting-item">
+                        <label class="setting-label">Default Search Engine</label>
                         <select class="setting-select" id="defaultEngine">
                             <option value="searxng">SearXNG</option>
                             <option value="google">Google</option>
@@ -527,11 +619,68 @@
                             <option value="youtube">YouTube</option>
                         </select>
                     </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">Search in New Tab</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="searchNewTab" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>🖥️ Display</h3>
+                    
+                    <div class="setting-item">
+                        <label class="setting-label">Font Size</label>
+                        <select class="setting-select" id="fontSize">
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">Show URL in Cards</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showUrls">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">Compact Mode</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="compactMode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>🔒 Privacy & Data</h3>
+                    
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" id="exportSettings">📤 Export Settings</button>
+                    </div>
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" id="importSettings">📥 Import Settings</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>🔧 Advanced</h3>
+                    
+                    <div class="setting-item">
+                        <button class="btn btn-danger" id="resetSettings">🔄 Reset All Settings</button>
+                    </div>
                 </div>
             </div>
 
             <div style="margin-top: 2rem; text-align: center;">
-                <button class="btn" id="saveSettingsBtn">💾 Save Settings</button>
+                <button class="btn" id="saveSettingsBtn">💾 Save All Settings</button>
             </div>
         </div>
     </div>
@@ -575,7 +724,21 @@
         const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
 
-        let settings = { themeMode: 'dark', defaultEngine: 'searxng' };
+        const DEFAULT_SETTINGS = {
+            themeMode: 'dark',
+            accentColor: '#3b82f6',
+            bgStyle: 'gradient',
+            cardSize: 'medium',
+            cardStyle: 'glass',
+            showAnimations: true,
+            defaultEngine: 'searxng',
+            searchNewTab: true,
+            fontSize: 'medium',
+            showUrls: false,
+            compactMode: false
+        };
+
+        let settings = { ...DEFAULT_SETTINGS };
         let workspaces = [];
         let bookmarks = [];
 
@@ -593,9 +756,14 @@
         function loadSettings() {
             try {
                 const stored = localStorage.getItem('niuSettings');
-                if (stored) settings = JSON.parse(stored);
+                if (stored) {
+                    settings = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+                }
                 applySettingsToUI();
-            } catch (e) {}
+            } catch (e) {
+                console.error('Error loading settings:', e);
+                settings = { ...DEFAULT_SETTINGS };
+            }
         }
 
         async function loadWorkspacesFromSupabase() {
@@ -790,12 +958,13 @@
                 showToast('✅ Synced!');
             });
 
-            document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-                settings.themeMode = document.getElementById('themeMode').value;
-                settings.defaultEngine = document.getElementById('defaultEngine').value;
-                localStorage.setItem('niuSettings', JSON.stringify(settings));
-                showToast('✅ Settings saved!');
-            });
+            document.getElementById('saveSettingsBtn').addEventListener('click', saveAllSettings);
+            
+            document.getElementById('exportSettings').addEventListener('click', exportSettings);
+            document.getElementById('importSettings').addEventListener('click', importSettings);
+            document.getElementById('importFile').addEventListener('change', handleImportFile);
+            
+            document.getElementById('resetSettings').addEventListener('click', resetAllSettings);
 
             document.getElementById('workspaceModal').addEventListener('click', (e) => {
                 if (e.target.id === 'workspaceModal') {
@@ -859,7 +1028,88 @@
 
         function applySettingsToUI() {
             document.getElementById('themeMode').value = settings.themeMode;
+            document.getElementById('accentColor').value = settings.accentColor;
+            document.getElementById('bgStyle').value = settings.bgStyle;
+            document.getElementById('cardSize').value = settings.cardSize;
+            document.getElementById('cardStyle').value = settings.cardStyle;
+            document.getElementById('showAnimations').checked = settings.showAnimations;
             document.getElementById('defaultEngine').value = settings.defaultEngine;
+            document.getElementById('searchNewTab').checked = settings.searchNewTab;
+            document.getElementById('fontSize').value = settings.fontSize;
+            document.getElementById('showUrls').checked = settings.showUrls;
+            document.getElementById('compactMode').checked = settings.compactMode;
+        }
+
+        function saveAllSettings() {
+            settings.themeMode = document.getElementById('themeMode').value;
+            settings.accentColor = document.getElementById('accentColor').value;
+            settings.bgStyle = document.getElementById('bgStyle').value;
+            settings.cardSize = document.getElementById('cardSize').value;
+            settings.cardStyle = document.getElementById('cardStyle').value;
+            settings.showAnimations = document.getElementById('showAnimations').checked;
+            settings.defaultEngine = document.getElementById('defaultEngine').value;
+            settings.searchNewTab = document.getElementById('searchNewTab').checked;
+            settings.fontSize = document.getElementById('fontSize').value;
+            settings.showUrls = document.getElementById('showUrls').checked;
+            settings.compactMode = document.getElementById('compactMode').checked;
+
+            localStorage.setItem('niuSettings', JSON.stringify(settings));
+            showToast('✅ Settings saved!');
+            window.dispatchEvent(new Event('storage'));
+        }
+
+        function exportSettings() {
+            const dataStr = JSON.stringify({
+                settings: settings,
+                workspaces: workspaces,
+                bookmarks: bookmarks,
+                exportDate: new Date().toISOString()
+            }, null, 2);
+            
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `niu-startpage-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('📤 Settings exported!');
+        }
+
+        function importSettings() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.settings) {
+                        settings = { ...DEFAULT_SETTINGS, ...data.settings };
+                        localStorage.setItem('niuSettings', JSON.stringify(settings));
+                        applySettingsToUI();
+                        showToast('📥 Settings imported!');
+                    }
+                } catch (error) {
+                    showToast('❌ Invalid file format');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetAllSettings() {
+            if (!confirm('Reset all settings to default? This cannot be undone.')) return;
+            
+            settings = { ...DEFAULT_SETTINGS };
+            localStorage.setItem('niuSettings', JSON.stringify(settings));
+            applySettingsToUI();
+            showToast('🔄 Settings reset!');
+            window.dispatchEvent(new Event('storage'));
         }
 
         function updateClock() {
