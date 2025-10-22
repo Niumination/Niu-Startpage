@@ -263,8 +263,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            text-decoration: none;
-            color: inherit;
             position: relative;
             overflow: hidden;
         }
@@ -314,14 +312,19 @@
             border-width: 2px;
         }
 
-        .bookmark-info {
+        .bookmark-link {
             flex: 1;
+            text-decoration: none;
+            color: inherit;
         }
 
         .bookmark-title {
             font-weight: 600;
             margin-bottom: 0.5rem;
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .bookmark-url {
@@ -344,28 +347,118 @@
             font-family: monospace;
         }
 
-        .settings-link {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: var(--accent);
-            color: white;
-            padding: 1rem;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            z-index: 100;
-            text-decoration: none;
+        .bookmark-actions {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+            gap: 0.5rem;
+            margin-left: 1rem;
         }
 
-        .settings-link:hover {
-            transform: scale(1.1) rotate(45deg);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .icon-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .icon-btn.delete:hover {
+            background: #ef4444;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
 
         .toast {
@@ -388,43 +481,109 @@
             opacity: 1;
         }
 
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
         @media (max-width: 768px) {
             .bookmarks {
                 grid-template-columns: 1fr;
-            }
-            
-            .settings-link {
-                bottom: 1rem;
-                right: 1rem;
             }
         }
     </style>
 </head>
 <body>
+    <div class="chord-indicator" id="chordIndicator"></div>
+
     <div class="container">
         <div class="header">
             <h1>🌟 Niu Startpage</h1>
-            <p>Your personalized navigation hub</p>
+            <p>Press <kbd>=</kbd> to search • <kbd>Type 2 letters</kbd> for chord shortcuts • <kbd>1-9</kbd> switch workspace</p>
         </div>
 
-        <div class="workspace-tabs" id="workspaceTabs"></div>
+        <div class="workspace-tabs" id="workspaceTabs">
+            <div class="loading">Loading workspaces...</div>
+        </div>
 
         <div class="search-container">
             <div class="search-wrapper">
                 <div class="engine-selector" id="engineSelector">
                     <span id="currentEngine">🔍 Google</span>
+                    <span style="margin-left: auto;">▼</span>
                 </div>
-                <input type="text" id="searchInput" placeholder="Search or type chord...">
+                <input type="text" id="searchInput" placeholder="Search or enter chord..." autocomplete="off">
             </div>
             <div class="engine-dropdown" id="engineDropdown"></div>
         </div>
 
-        <div class="bookmarks" id="bookmarksContainer"></div>
+        <div class="bookmarks" id="bookmarksContainer">
+            <div class="loading">Loading bookmarks...</div>
+        </div>
+
+        <div class="controls">
+            <a class="btn" href="navigation.html">📊 Navigation</a>
+            <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
+            <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
+            <button class="btn" id="syncBtn">🔄 Sync</button>
+        </div>
     </div>
 
-    <a href="navigation.html" class="settings-link" title="Settings">⚙️</a>
+    <div class="modal" id="bookmarkModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Bookmark</h2>
+            <input type="hidden" id="editBookmarkId">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="bookmarkTitle" placeholder="e.g. Hacker News">
+            </div>
+            <div class="form-group">
+                <label>URL</label>
+                <input type="text" id="bookmarkUrl" placeholder="news.ycombinator.com">
+            </div>
+            <div class="form-group">
+                <label>Chord (2 letters)</label>
+                <input type="text" id="bookmarkChord" placeholder="e.g. HN" maxlength="2">
+            </div>
+            <div class="form-group">
+                <label>Workspace</label>
+                <select id="bookmarkWorkspace"></select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="saveBookmark">Save</button>
+                <button class="btn" id="cancelBookmark">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-    <div class="chord-indicator" id="chordIndicator"></div>
+    <div class="footer">
+        Developed by <a href="https://github.com/Niumination" target="_blank" rel="noopener">Niumination</a>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script>
@@ -597,7 +756,7 @@
             container.innerHTML = workspaces.map((ws, index) => `
                 <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
                      data-workspace="${ws.id}"
-                     style="border-color: ${ws.color}">
+                     style="border-color: ${ws.id === currentWorkspace ? ws.color : 'rgba(255, 255, 255, 0.15)'}">
                     ${ws.icon} ${ws.name}
                     ${index < 9 ? `<span class="workspace-shortcut">${index + 1}</span>` : ''}
                 </div>
@@ -617,33 +776,38 @@
             const wsBookmarks = bookmarks.filter(b => b.workspace === currentWorkspace);
             
             if (wsBookmarks.length === 0) {
+                const ws = workspaces.find(w => w.id === currentWorkspace);
                 container.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
-                        <p style="font-size: 3rem; margin-bottom: 1rem;">📚</p>
+                        <p style="font-size: 3rem; margin-bottom: 1rem;">${ws ? ws.icon : '📚'}</p>
                         <p>No bookmarks yet in this workspace</p>
-                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Go to Settings to add bookmarks</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Click "➕ Add Bookmark" to create one!</p>
                     </div>
                 `;
                 return;
             }
             
-            container.innerHTML = wsBookmarks.map(bookmark => {
-                const cardClass = settings.cardStyle === 'solid' ? 'style-solid' : 
-                                 settings.cardStyle === 'outlined' ? 'style-outlined' : '';
-                return `
+            const cardClass = settings.cardStyle === 'solid' ? 'style-solid' : 
+                             settings.cardStyle === 'outlined' ? 'style-outlined' : '';
+            
+            container.innerHTML = wsBookmarks.map(bookmark => `
+                <div class="bookmark-card ${cardClass}" data-bookmark-id="${bookmark.id}">
                     <a href="${bookmark.url}" 
-                       class="bookmark-card ${cardClass}" 
+                       class="bookmark-link" 
                        target="${settings.searchNewTab ? '_blank' : '_self'}"
-                       rel="noopener noreferrer"
-                       data-bookmark-id="${bookmark.id}">
-                        <div class="bookmark-info">
-                            <div class="bookmark-title">${bookmark.title}</div>
-                            <div class="bookmark-url ${settings.showUrls ? 'visible' : ''}">${bookmark.url}</div>
+                       rel="noopener noreferrer">
+                        <div class="bookmark-title">
+                            <span>${bookmark.title}</span>
+                            ${bookmark.chord ? `<span class="bookmark-chord">${bookmark.chord}</span>` : ''}
                         </div>
-                        ${bookmark.chord ? `<div class="bookmark-chord">${bookmark.chord}</div>` : ''}
+                        <div class="bookmark-url ${settings.showUrls ? 'visible' : ''}">${bookmark.url}</div>
                     </a>
-                `;
-            }).join('');
+                    <div class="bookmark-actions">
+                        <button class="icon-btn" onclick="editBookmark(${bookmark.id})">✏️</button>
+                        <button class="icon-btn delete" onclick="deleteBookmark(${bookmark.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function setupSearchEngines() {
@@ -669,145 +833,305 @@
             });
         }
 
-        function setupEventListeners() {
-            // Engine selector toggle
-            document.getElementById('engineSelector').addEventListener('click', () => {
-                document.getElementById('engineDropdown').classList.toggle('show');
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.search-container')) {
-                    document.getElementById('engineDropdown').classList.remove('show');
+        function setupChordListener() {
+            document.addEventListener('keydown', (e) => {
+                // Ignore if typing in input/textarea
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                // Only handle letter keys
+                if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                    e.preventDefault();
+                    
+                    chordBuffer += e.key.toUpperCase();
+                    
+                    // Clear buffer after timeout
+                    if (chordTimeout) clearTimeout(chordTimeout);
+                    chordTimeout = setTimeout(() => {
+                        chordBuffer = '';
+                        if (settings.showChordIndicator) {
+                            document.getElementById('chordIndicator').classList.remove('show');
+                        }
+                    }, settings.chordTimeout);
+
+                    // Show chord indicator
+                    if (settings.showChordIndicator) {
+                        const indicator = document.getElementById('chordIndicator');
+                        indicator.textContent = chordBuffer;
+                        indicator.classList.add('show');
+                    }
+                    
+                    // Check if we have 2 characters
+                    if (chordBuffer.length === 2) {
+                        const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === chordBuffer);
+                        
+                        if (bookmark) {
+                            // Add visual effect to the card
+                            const card = document.querySelector(`[data-bookmark-id="${bookmark.id}"]`);
+                            if (card) {
+                                card.classList.add('chord-activated');
+                                setTimeout(() => card.classList.remove('chord-activated'), 600);
+                            }
+                            
+                            // Open the bookmark
+                            setTimeout(() => {
+                                window.open(bookmark.url, settings.searchNewTab ? '_blank' : '_self');
+                            }, 300);
+                            
+                            showToast(`🚀 Opening: ${bookmark.title}`);
+                        } else {
+                            showToast(`❌ Chord "${chordBuffer}" not found`);
+                        }
+                        
+                        chordBuffer = '';
+                        if (settings.showChordIndicator) {
+                            setTimeout(() => {
+                                document.getElementById('chordIndicator').classList.remove('show');
+                            }, 500);
+                        }
+                    }
                 }
             });
-            
-            // Search on Enter
-            document.getElementById('searchInput').addEventListener('keydown', (e) => {
+        }
+
+        function setupEventListeners() {
+            // Engine selector toggle
+            document.getElementById('engineSelector').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('engineDropdown').classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', () => {
+                document.getElementById('engineDropdown').classList.remove('show');
+            });
+
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     const query = e.target.value.trim();
                     if (query) {
                         const url = SEARCH_ENGINES[currentEngine].url + encodeURIComponent(query);
-                        if (settings.searchNewTab) {
-                            window.open(url, '_blank', 'noopener,noreferrer');
-                        } else {
-                            window.location.href = url;
-                        }
+                        window.open(url, settings.searchNewTab ? '_blank' : '_self');
                         e.target.value = '';
                     }
                 }
             });
-            
-            // Workspace number shortcuts
+
+            // Check for chord in search input
+            searchInput.addEventListener('input', (e) => {
+                const input = e.target.value.toUpperCase();
+                if (input.length === 2) {
+                    const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === input);
+                    if (bookmark) {
+                        const card = document.querySelector(`[data-bookmark-id="${bookmark.id}"]`);
+                        if (card) {
+                            card.classList.add('chord-activated');
+                            setTimeout(() => card.classList.remove('chord-activated'), 600);
+                        }
+                        window.open(bookmark.url, settings.searchNewTab ? '_blank' : '_self');
+                        e.target.value = '';
+                        showToast(`🚀 Opening: ${bookmark.title}`);
+                    }
+                }
+            });
+
+            // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
-                // Only if not focused on input
-                if (document.activeElement.tagName === 'INPUT') return;
-                
-                if (e.key >= '1' && e.key <= '9') {
-                    const index = parseInt(e.key) - 1;
-                    if (workspaces[index]) {
-                        currentWorkspace = workspaces[index].id;
+                // Switch workspace with 1-9
+                if (e.key >= '1' && e.key <= '9' && document.activeElement !== searchInput) {
+                    const idx = parseInt(e.key) - 1;
+                    if (idx < workspaces.length) {
+                        currentWorkspace = workspaces[idx].id;
                         renderWorkspaces();
                         renderBookmarks();
                     }
                 }
-            });
-        }
-
-        function setupChordListener() {
-            document.addEventListener('keydown', (e) => {
-                // Ignore if focused on input
-                if (document.activeElement.tagName === 'INPUT' || 
-                    document.activeElement.tagName === 'TEXTAREA') {
-                    return;
+                
+                // Focus search with =
+                if (e.key === '=' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
                 }
                 
-                // Only accept letters
-                if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
-                    chordBuffer += e.key.toLowerCase();
-                    
-                    if (settings.showChordIndicator) {
-                        showChordIndicator(chordBuffer);
-                    }
-                    
-                    // Check for chord match
-                    const matchedBookmark = bookmarks.find(b => 
-                        b.chord && b.chord.toLowerCase() === chordBuffer
-                    );
-                    
-                    if (matchedBookmark) {
-                        activateChord(matchedBookmark);
-                        chordBuffer = '';
-                        return;
-                    }
-                    
-                    // Reset timeout
-                    clearTimeout(chordTimeout);
-                    chordTimeout = setTimeout(() => {
-                        chordBuffer = '';
-                        hideChordIndicator();
-                    }, settings.chordTimeout);
+                // Close modals with Escape
+                if (e.key === 'Escape') {
+                    document.getElementById('bookmarkModal').classList.remove('active');
+                    searchInput.blur();
+                }
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                settings.themeMode = settings.themeMode === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('niuSettings', JSON.stringify(settings));
+                applySettings();
+                showToast(settings.themeMode === 'dark' ? '🌙 Dark mode' : '☀️ Light mode');
+            });
+
+            // Add bookmark button
+            document.getElementById('addBookmarkBtn').addEventListener('click', () => {
+                document.getElementById('modalTitle').textContent = 'Add Bookmark';
+                document.getElementById('editBookmarkId').value = '';
+                document.getElementById('bookmarkTitle').value = '';
+                document.getElementById('bookmarkUrl').value = '';
+                document.getElementById('bookmarkChord').value = '';
+                
+                const select = document.getElementById('bookmarkWorkspace');
+                select.innerHTML = workspaces.map(ws => 
+                    `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
+                ).join('');
+                
+                document.getElementById('bookmarkModal').classList.add('active');
+            });
+
+            // Save bookmark
+            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
+            
+            // Cancel bookmark
+            document.getElementById('cancelBookmark').addEventListener('click', () => {
+                document.getElementById('bookmarkModal').classList.remove('active');
+            });
+
+            // Sync button
+            document.getElementById('syncBtn').addEventListener('click', async () => {
+                showToast('🔄 Syncing...');
+                await loadData();
+                renderWorkspaces();
+                renderBookmarks();
+                showToast('✅ Synced!');
+            });
+
+            // Close modal on backdrop click
+            document.getElementById('bookmarkModal').addEventListener('click', (e) => {
+                if (e.target.id === 'bookmarkModal') {
+                    e.target.classList.remove('active');
                 }
             });
         }
 
-        function showChordIndicator(text) {
-            const indicator = document.getElementById('chordIndicator');
-            indicator.textContent = text.toUpperCase();
-            indicator.classList.add('show');
-        }
+        // Global functions for edit and delete
+        window.editBookmark = function(id) {
+            const bookmark = bookmarks.find(b => b.id === id);
+            if (!bookmark) return;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Bookmark';
+            document.getElementById('editBookmarkId').value = id;
+            document.getElementById('bookmarkTitle').value = bookmark.title;
+            document.getElementById('bookmarkUrl').value = bookmark.url;
+            document.getElementById('bookmarkChord').value = bookmark.chord || '';
+            
+            const select = document.getElementById('bookmarkWorkspace');
+            select.innerHTML = workspaces.map(ws => 
+                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
+            ).join('');
+            
+            document.getElementById('bookmarkModal').classList.add('active');
+        };
 
-        function hideChordIndicator() {
-            const indicator = document.getElementById('chordIndicator');
-            indicator.classList.remove('show');
-        }
-
-        function activateChord(bookmark) {
-            hideChordIndicator();
+        window.deleteBookmark = async function(id) {
+            const bookmark = bookmarks.find(b => b.id === id);
+            if (!bookmark) return;
             
-            // Play sound if enabled
-            if (settings.chordSound) {
-                playChordSound();
-            }
+            if (!confirm(`Delete "${bookmark.title}"?`)) return;
             
-            // Show visual effect on card
-            const card = document.querySelector(`[data-bookmark-id="${bookmark.id}"]`);
-            if (card) {
-                card.classList.add('chord-activated');
-                setTimeout(() => {
-                    card.classList.remove('chord-activated');
-                }, 600);
-            }
-            
-            // Show toast
-            showToast(`🚀 Opening: ${bookmark.title}`);
-            
-            // Navigate after short delay
-            setTimeout(() => {
-                if (settings.searchNewTab) {
-                    window.open(bookmark.url, '_blank', 'noopener,noreferrer');
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    bookmarks = bookmarks.filter(b => b.id !== id);
+                    renderBookmarks();
+                    showToast('✅ Bookmark deleted');
                 } else {
-                    window.location.href = bookmark.url;
+                    throw new Error('Delete failed');
                 }
-            }, 300);
-        }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('❌ Delete failed');
+            }
+        };
 
-        function playChordSound() {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+        async function saveBookmark() {
+            const id = document.getElementById('editBookmarkId').value;
+            const title = document.getElementById('bookmarkTitle').value.trim();
+            const url = document.getElementById('bookmarkUrl').value.trim();
+            const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
+            const workspace = document.getElementById('bookmarkWorkspace').value;
             
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            if (!title || !url) {
+                showToast('❌ Title and URL required!');
+                return;
+            }
             
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
+            let fullUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                fullUrl = 'https://' + url;
+            }
             
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            // Check if chord already exists (except for current bookmark)
+            if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord && b.id != id)) {
+                showToast('❌ Chord already exists!');
+                return;
+            }
             
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
+            try {
+                if (id) {
+                    // Update existing bookmark
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
+                    });
+                    
+                    if (response.ok) {
+                        const [updated] = await response.json();
+                        const index = bookmarks.findIndex(b => b.id == id);
+                        if (index !== -1) bookmarks[index] = updated;
+                        showToast('✅ Bookmark updated!');
+                    } else {
+                        throw new Error('Update failed');
+                    }
+                } else {
+                    // Create new bookmark
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
+                    });
+                    
+                    if (response.ok) {
+                        const [newBookmark] = await response.json();
+                        bookmarks.push(newBookmark);
+                        showToast('✅ Bookmark added!');
+                    } else {
+                        throw new Error('Create failed');
+                    }
+                }
+                
+                renderBookmarks();
+                document.getElementById('bookmarkModal').classList.remove('active');
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('❌ Save failed');
+            }
         }
 
         function showToast(message) {
@@ -817,20 +1141,8 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Auto sync if enabled
-        function setupAutoSync() {
-            if (settings.autoSyncInterval > 0) {
-                setInterval(async () => {
-                    await loadData();
-                    renderWorkspaces();
-                    renderBookmarks();
-                    showToast('🔄 Auto-synced');
-                }, settings.autoSyncInterval * 60 * 1000);
-            }
-        }
-
+        // Initialize the app
         init();
-        setupAutoSync();
     </script>
 </body>
 </html>
