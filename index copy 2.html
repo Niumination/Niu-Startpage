@@ -134,9 +134,6 @@
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .workspace-tab:hover {
@@ -148,14 +145,6 @@
             background: var(--accent);
             color: white;
             border-color: var(--accent);
-        }
-
-        .workspace-shortcut {
-            font-size: 0.75rem;
-            opacity: 0.7;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
         }
 
         .search-container {
@@ -298,13 +287,7 @@
 
         .bookmark-url.show { display: block; }
 
-        .bookmark-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: 1rem;
-        }
-
-        .icon-btn {
+        .delete-bookmark-btn {
             background: transparent;
             border: none;
             color: var(--text-secondary);
@@ -313,16 +296,13 @@
             border-radius: 6px;
             transition: all 0.2s;
             font-size: 1rem;
+            margin-left: 1rem;
         }
 
-        .icon-btn:hover {
-            background: var(--accent);
+        .delete-bookmark-btn:hover {
+            background: #ef4444;
             color: white;
             transform: scale(1.1);
-        }
-
-        .icon-btn.delete:hover {
-            background: #ef4444;
         }
 
         .controls {
@@ -483,7 +463,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Niu Startpage</h1>
-            <p>Press <span class="key">=</span> to focus search • Use <span class="key">1-9</span> to switch workspaces • Use bookmark chords for quick access</p>
+            <p>Press <span class="key">=</span> to focus search • Use bookmark chords for quick access</p>
         </div>
 
         <!-- Workspace Tabs -->
@@ -509,7 +489,7 @@
         <div class="bookmarks" id="bookmarks"></div>
 
         <div class="controls">
-            <a class="btn" href="navigation.html" target="_blank">📊 Navigation</a>
+            <a class="btn" href="navigation.html">📊 Navigation</a>
             <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
             <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
             <button class="btn" id="loadBtn">📥 Load from Supabase</button>
@@ -521,10 +501,6 @@
             <div class="shortcut-item">
                 <span>Focus search</span>
                 <span class="key">=</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Switch workspaces</span>
-                <span class="key">1-9</span>
             </div>
             <div class="shortcut-item">
                 <span>Search with SearXNG</span>
@@ -545,11 +521,10 @@
         </div>
     </div>
 
-    <!-- Add/Edit Bookmark Modal -->
+    <!-- Add Bookmark Modal -->
     <div class="modal" id="bookmarkModal">
         <div class="modal-content">
-            <h2 id="modalTitle">Add Bookmark</h2>
-            <input type="hidden" id="editBookmarkId">
+            <h2>Add Bookmark</h2>
             <div class="form-group">
                 <label>Title</label>
                 <input type="text" id="bookmarkTitle" placeholder="e.g. Hacker News">
@@ -588,6 +563,16 @@
             youtube: 'https://www.youtube.com/results?search_query='
         };
 
+        // Default bookmarks
+        const defaultBookmarks = [
+            { title: 'Hacker News', url: 'https://news.ycombinator.com', chord: 'HN', workspace: 'default' },
+            { title: 'GitHub', url: 'https://github.com', chord: 'GH', workspace: 'default' },
+            { title: 'Reddit', url: 'https://reddit.com', chord: 'RD', workspace: 'default' },
+            { title: 'YouTube', url: 'https://youtube.com', chord: 'YT', workspace: 'default' },
+            { title: 'Twitter', url: 'https://twitter.com', chord: 'TW', workspace: 'default' },
+            { title: 'Wikipedia', url: 'https://wikipedia.org', chord: 'WK', workspace: 'default' }
+        ];
+
         // Global variables
         let bookmarks = [];
         let workspaces = [];
@@ -596,17 +581,19 @@
         let chordBuffer = '';
         let chordTimeout = null;
         let settings = {};
-        let editingBookmarkIndex = -1;
 
         // Initialize
         async function init() {
             loadSettings();
             applySettings();
-            await syncWorkspacesFromSupabase();
+            loadWorkspaces();
+            setupEventListeners();
             await loadBookmarksFromSupabase();
+            if (bookmarks.length === 0) {
+                loadBookmarks();
+            }
             renderWorkspaceTabs();
             renderBookmarks();
-            setupEventListeners();
         }
 
         // Load settings from localStorage
@@ -633,12 +620,15 @@
 
         // Apply settings to page
         function applySettings() {
+            // Theme
             document.documentElement.setAttribute('data-theme', settings.themeMode);
             
+            // Accent color
             if (settings.accentColor) {
                 document.documentElement.style.setProperty('--accent', settings.accentColor);
             }
             
+            // Background style
             document.body.className = '';
             if (settings.bgStyle === 'gradient') {
                 document.body.classList.add('bg-gradient');
@@ -648,18 +638,22 @@
                 document.body.classList.add('bg-solid');
             }
             
+            // Animations
             if (settings.showAnimations) {
                 document.body.classList.add('animations-enabled');
             }
             
+            // Font size
             if (settings.fontSize) {
                 document.body.classList.add('font-' + settings.fontSize);
             }
             
+            // Compact mode
             if (settings.compactMode) {
                 document.querySelector('.container').classList.add('compact');
             }
             
+            // Default engine
             if (settings.defaultEngine) {
                 currentEngine = settings.defaultEngine;
                 document.querySelectorAll('.engine-btn').forEach(btn => {
@@ -668,84 +662,42 @@
             }
         }
 
-        // Sync workspaces from Supabase
-        async function syncWorkspacesFromSupabase() {
+        // Load workspaces
+        function loadWorkspaces() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=workspace`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    const uniqueWorkspaces = [...new Set(data.map(b => b.workspace))];
-                    
-                    // Create workspace objects
-                    workspaces = uniqueWorkspaces.map(ws => ({
-                        id: ws,
-                        name: ws.charAt(0).toUpperCase() + ws.slice(1).replace(/_/g, ' ')
-                    }));
-                    
-                    // Ensure default is first
-                    workspaces.sort((a, b) => {
-                        if (a.id === 'default') return -1;
-                        if (b.id === 'default') return 1;
-                        return a.name.localeCompare(b.name);
-                    });
-                    
-                    localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
-                }
-            } catch (error) {
-                console.error('Error syncing workspaces:', error);
-                // Fallback to localStorage
                 const stored = localStorage.getItem('niuWorkspaces');
                 workspaces = stored ? JSON.parse(stored) : [
-                    { id: 'default', name: 'Default' }
+                    { id: 'default', name: 'Default', bookmarks: [] }
                 ];
+            } catch (e) {
+                workspaces = [{ id: 'default', name: 'Default', bookmarks: [] }];
             }
         }
 
-        // Render workspace tabs with shortcuts
+        // Render workspace tabs
         function renderWorkspaceTabs() {
             const container = document.getElementById('workspaceTabs');
-            container.innerHTML = workspaces.map((ws, idx) => `
+            container.innerHTML = workspaces.map(ws => `
                 <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
                      data-workspace="${ws.id}">
                     ${ws.name}
-                    ${idx < 9 ? `<span class="workspace-shortcut">${idx + 1}</span>` : ''}
                 </div>
             `).join('');
         }
 
-        // Load bookmarks from Supabase
-        async function loadBookmarksFromSupabase() {
+        // Load bookmarks
+        function loadBookmarks() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (!response.ok) throw new Error('Failed to load');
-                
-                const data = await response.json();
-                bookmarks = data.map(item => ({
-                    id: item.id,
-                    title: item.title,
-                    url: item.url,
-                    chord: item.chord,
-                    workspace: item.workspace || 'default'
-                }));
-                
-                localStorage.setItem('lastSyncOk', 'true');
-                renderBookmarks();
-            } catch (error) {
-                console.error('Load error:', error);
-                localStorage.setItem('lastSyncOk', 'false');
+                const stored = localStorage.getItem('bookmarks');
+                bookmarks = stored ? JSON.parse(stored) : [...defaultBookmarks];
+            } catch (e) {
+                bookmarks = [...defaultBookmarks];
             }
+        }
+
+        // Save bookmarks
+        function saveBookmarks() {
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
         }
 
         // Render bookmarks
@@ -753,21 +705,13 @@
             const container = document.getElementById('bookmarks');
             const filtered = bookmarks.filter(b => b.workspace === currentWorkspace);
             
+            // Apply card size
             container.className = 'bookmarks';
             if (settings.cardSize) {
                 container.classList.add('size-' + settings.cardSize);
             }
             
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        No bookmarks in this workspace yet. Click "Add Bookmark" to create one!
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = filtered.map(b => `
+            container.innerHTML = filtered.map((b, idx) => `
                 <div class="bookmark-card ${settings.cardStyle ? 'style-' + settings.cardStyle : ''}">
                     <a href="${b.url}" class="bookmark-link" target="_blank" rel="noopener noreferrer">
                         <div class="bookmark-title">
@@ -776,66 +720,26 @@
                         </div>
                         ${settings.showUrls ? `<div class="bookmark-url show">${b.url}</div>` : `<div class="bookmark-url">${b.url}</div>`}
                     </a>
-                    <div class="bookmark-actions">
-                        <button class="icon-btn" onclick="editBookmark(${b.id})" title="Edit bookmark">
-                            ✏️
-                        </button>
-                        <button class="icon-btn delete" onclick="deleteBookmark(${b.id})" title="Delete bookmark">
-                            🗑️
-                        </button>
-                    </div>
+                    <button class="delete-bookmark-btn" onclick="deleteBookmark(${bookmarks.indexOf(b)})" title="Delete bookmark">
+                        🗑️
+                    </button>
                 </div>
             `).join('');
         }
 
-        // Edit bookmark
-        window.editBookmark = async function(id) {
-            const bookmark = bookmarks.find(b => b.id === id);
-            if (!bookmark) return;
-            
-            document.getElementById('modalTitle').textContent = 'Edit Bookmark';
-            document.getElementById('editBookmarkId').value = id;
-            document.getElementById('bookmarkTitle').value = bookmark.title;
-            document.getElementById('bookmarkUrl').value = bookmark.url;
-            document.getElementById('bookmarkChord').value = bookmark.chord || '';
-            
-            const workspaceSelect = document.getElementById('bookmarkWorkspace');
-            workspaceSelect.innerHTML = workspaces.map(ws => 
-                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.name}</option>`
-            ).join('');
-            
-            document.getElementById('bookmarkModal').classList.add('active');
-            document.getElementById('bookmarkTitle').focus();
-        };
-
         // Delete bookmark
-        window.deleteBookmark = async function(id) {
-            if (!confirm('Delete this bookmark?')) return;
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    bookmarks = bookmarks.filter(b => b.id !== id);
-                    renderBookmarks();
-                    showToast('🗑️ Bookmark deleted');
-                } else {
-                    throw new Error('Failed to delete');
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-                showToast('❌ Failed to delete bookmark');
+        window.deleteBookmark = function(index) {
+            if (confirm('Delete this bookmark?')) {
+                bookmarks.splice(index, 1);
+                saveBookmarks();
+                renderBookmarks();
+                showToast('🗑️ Bookmark deleted');
             }
         };
 
         // Setup event listeners
         function setupEventListeners() {
+            // Search input
             const searchInput = document.getElementById('searchInput');
             searchInput.addEventListener('keydown', handleSearch);
             searchInput.addEventListener('input', handleChordInput);
@@ -849,9 +753,8 @@
                 });
             });
 
-            // Keyboard shortcuts
+            // Search engine keyboard shortcuts
             document.addEventListener('keydown', (e) => {
-                // Alt + key for search engines
                 if (e.altKey) {
                     const engineBtn = document.querySelector(`[data-key="${e.key}"]`);
                     if (engineBtn) {
@@ -861,23 +764,10 @@
                     }
                 }
                 
-                // Number keys (1-9) for workspace switching
-                if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey && document.activeElement !== searchInput) {
-                    const index = parseInt(e.key) - 1;
-                    if (index < workspaces.length) {
-                        switchWorkspace(workspaces[index].id);
-                    }
-                }
-                
                 // Focus search with =
                 if (e.key === '=' && document.activeElement !== searchInput) {
                     e.preventDefault();
                     searchInput.focus();
-                }
-
-                // Close modal with Escape
-                if (e.key === 'Escape') {
-                    closeBookmarkModal();
                 }
             });
 
@@ -891,26 +781,22 @@
 
             // Add bookmark
             document.getElementById('addBookmarkBtn').addEventListener('click', openAddBookmarkModal);
-            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
+            document.getElementById('saveBookmark').addEventListener('click', saveNewBookmark);
             document.getElementById('cancelBookmark').addEventListener('click', closeBookmarkModal);
 
             // Load from Supabase
-            document.getElementById('loadBtn').addEventListener('click', async () => {
-                showToast('📥 Loading...');
-                await syncWorkspacesFromSupabase();
-                await loadBookmarksFromSupabase();
-                renderWorkspaceTabs();
-                showToast('✅ Loaded from Supabase!');
-            });
+            document.getElementById('loadBtn').addEventListener('click', loadBookmarksFromSupabase);
 
             // Sync with Supabase
             document.getElementById('syncBtn').addEventListener('click', syncWithSupabase);
 
             // Workspace tabs
             document.getElementById('workspaceTabs').addEventListener('click', (e) => {
-                if (e.target.classList.contains('workspace-tab') || e.target.closest('.workspace-tab')) {
-                    const tab = e.target.classList.contains('workspace-tab') ? e.target : e.target.closest('.workspace-tab');
-                    switchWorkspace(tab.dataset.workspace);
+                if (e.target.classList.contains('workspace-tab')) {
+                    currentWorkspace = e.target.dataset.workspace;
+                    document.querySelectorAll('.workspace-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderBookmarks();
                 }
             });
 
@@ -921,7 +807,7 @@
                 }
             });
 
-            // Listen for settings changes
+            // Listen for settings changes from navigation page
             window.addEventListener('storage', (e) => {
                 if (e.key === 'niuSettings') {
                     loadSettings();
@@ -929,15 +815,6 @@
                     renderBookmarks();
                 }
             });
-        }
-
-        // Switch workspace
-        function switchWorkspace(workspaceId) {
-            currentWorkspace = workspaceId;
-            document.querySelectorAll('.workspace-tab').forEach(t => t.classList.remove('active'));
-            const tab = document.querySelector(`[data-workspace="${workspaceId}"]`);
-            if (tab) tab.classList.add('active');
-            renderBookmarks();
         }
 
         // Handle search
@@ -969,6 +846,7 @@
                 }
             }
             
+            // Clear chord buffer after timeout
             clearTimeout(chordTimeout);
             chordTimeout = setTimeout(() => {
                 chordBuffer = '';
@@ -977,27 +855,26 @@
 
         // Modal functions
         function openAddBookmarkModal() {
-            document.getElementById('modalTitle').textContent = 'Add Bookmark';
-            document.getElementById('editBookmarkId').value = '';
-            document.getElementById('bookmarkTitle').value = '';
-            document.getElementById('bookmarkUrl').value = '';
-            document.getElementById('bookmarkChord').value = '';
-            
+            const modal = document.getElementById('bookmarkModal');
             const workspaceSelect = document.getElementById('bookmarkWorkspace');
+            
+            // Populate workspace dropdown
             workspaceSelect.innerHTML = workspaces.map(ws => 
                 `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.name}</option>`
             ).join('');
             
-            document.getElementById('bookmarkModal').classList.add('active');
+            modal.classList.add('active');
             document.getElementById('bookmarkTitle').focus();
         }
 
         function closeBookmarkModal() {
             document.getElementById('bookmarkModal').classList.remove('active');
+            document.getElementById('bookmarkTitle').value = '';
+            document.getElementById('bookmarkUrl').value = '';
+            document.getElementById('bookmarkChord').value = '';
         }
 
-        async function saveBookmark() {
-            const id = document.getElementById('editBookmarkId').value;
+        function saveNewBookmark() {
             const title = document.getElementById('bookmarkTitle').value.trim();
             const url = document.getElementById('bookmarkUrl').value.trim();
             const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
@@ -1014,98 +891,94 @@
                 fullUrl = 'https://' + url;
             }
             
-            // Check if chord already exists (except for current bookmark when editing)
-            if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord && b.id != id)) {
+            // Check if chord already exists
+            if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord)) {
                 showToast('❌ Chord already exists!');
                 return;
             }
             
+            bookmarks.push({
+                title,
+                url: fullUrl,
+                chord: chord || null,
+                workspace
+            });
+            
+            saveBookmarks();
+            renderBookmarks();
+            closeBookmarkModal();
+            showToast('✅ Bookmark added!');
+        }
+
+        // Supabase functions
+        async function loadBookmarksFromSupabase() {
             try {
-                if (id) {
-                    // Update existing bookmark
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
-                        body: JSON.stringify({
-                            title,
-                            url: fullUrl,
-                            chord: chord || null,
-                            workspace
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const [updated] = await response.json();
-                        const index = bookmarks.findIndex(b => b.id == id);
-                        if (index !== -1) {
-                            bookmarks[index] = {
-                                id: updated.id,
-                                title: updated.title,
-                                url: updated.url,
-                                chord: updated.chord,
-                                workspace: updated.workspace
-                            };
-                        }
-                        showToast('✅ Bookmark updated!');
-                    } else {
-                        throw new Error('Failed to update');
+                showToast('📥 Loading from Supabase...');
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
                     }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load');
+                
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    bookmarks = data.map(item => ({
+                        title: item.title,
+                        url: item.url,
+                        chord: item.chord,
+                        workspace: item.workspace || 'default'
+                    }));
+                    saveBookmarks();
+                    renderBookmarks();
+                    localStorage.setItem('lastSyncOk', 'true');
+                    showToast('✅ Loaded from Supabase!');
                 } else {
-                    // Add new bookmark
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
-                        body: JSON.stringify({
-                            title,
-                            url: fullUrl,
-                            chord: chord || null,
-                            workspace
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const [newBookmark] = await response.json();
-                        bookmarks.push({
-                            id: newBookmark.id,
-                            title: newBookmark.title,
-                            url: newBookmark.url,
-                            chord: newBookmark.chord,
-                            workspace: newBookmark.workspace
-                        });
-                        showToast('✅ Bookmark added!');
-                    } else {
-                        throw new Error('Failed to add');
-                    }
+                    showToast('ℹ️ No bookmarks found in Supabase');
                 }
-                
-                // Refresh workspaces if new workspace was used
-                await syncWorkspacesFromSupabase();
-                renderWorkspaceTabs();
-                renderBookmarks();
-                closeBookmarkModal();
-                
             } catch (error) {
-                console.error('Save error:', error);
-                showToast('❌ Failed to save bookmark');
+                console.error('Load error:', error);
+                localStorage.setItem('lastSyncOk', 'false');
+                showToast('❌ Failed to load from Supabase');
             }
         }
 
         async function syncWithSupabase() {
             try {
                 showToast('🔄 Syncing with Supabase...');
-                await syncWorkspacesFromSupabase();
-                await loadBookmarksFromSupabase();
-                renderWorkspaceTabs();
+                
+                // Delete all existing bookmarks
+                await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=gt.0`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=minimal'
+                    }
+                });
+                
+                // Insert current bookmarks
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(bookmarks.map(b => ({
+                        title: b.title,
+                        url: b.url,
+                        chord: b.chord,
+                        workspace: b.workspace || 'default'
+                    })))
+                });
+                
+                if (!response.ok) throw new Error('Sync failed');
+                
                 localStorage.setItem('lastSyncOk', 'true');
                 showToast('✅ Synced with Supabase!');
             } catch (error) {

@@ -106,6 +106,7 @@
         .panel h2 { color: var(--accent); margin-bottom: 1rem; font-size: 1.2rem; }
         .panel p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; }
 
+        /* Settings specific styles */
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -267,6 +268,7 @@
             background: #dc2626;
         }
 
+        /* Workspace Management */
         .workspace-list {
             margin-top: 1rem;
         }
@@ -297,17 +299,6 @@
             color: var(--text-secondary);
         }
 
-        .workspace-id {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            font-family: monospace;
-            background: rgba(255,255,255,0.05);
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            margin-top: 0.25rem;
-            display: inline-block;
-        }
-
         .workspace-actions {
             display: flex;
             gap: 0.5rem;
@@ -321,7 +312,6 @@
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.85rem;
-            color: var(--text-primary);
         }
 
         .icon-btn:hover {
@@ -329,6 +319,7 @@
             border-color: var(--accent);
         }
 
+        /* Status bar */
         .statusbar {
             position: fixed;
             left: 0;
@@ -421,8 +412,8 @@
             <div class="tabs">
                 <a class="tab" href="index.html">🏠 Home</a>
                 <a class="tab" href="#" data-panel="status">📊 Status</a>
-                <a class="tab active" href="#" data-panel="workspaces">📁 Workspaces</a>
-                <a class="tab" href="#" data-panel="settings">⚙️ Settings</a>
+                <a class="tab" href="#" data-panel="workspaces">📁 Workspaces</a>
+                <a class="tab active" href="#" data-panel="settings">⚙️ Settings</a>
             </div>
         </div>
 
@@ -433,26 +424,24 @@
         </div>
 
         <!-- Workspaces Panel -->
-        <div class="panel active" id="workspacesPanel">
+        <div class="panel" id="workspacesPanel">
             <h2>📁 Workspace Management</h2>
-            <p>Workspaces are synced automatically from Supabase based on your bookmarks.</p>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
-                <strong>How it works:</strong> When you create a bookmark and assign it to a new workspace name, that workspace will automatically appear here and in the main page.
-            </p>
+            <p>Organize your bookmarks into different workspaces for better productivity.</p>
             
             <div style="margin: 1.5rem 0;">
-                <button class="btn" id="syncWorkspacesBtn">🔄 Sync from Supabase</button>
+                <button class="btn" id="addWorkspaceBtn">➕ Add Workspace</button>
             </div>
 
             <div class="workspace-list" id="workspaceList"></div>
         </div>
 
         <!-- Settings Panel -->
-        <div class="panel" id="settingsPanel">
+        <div class="panel active" id="settingsPanel">
             <h2>⚙️ Appearance & Customization</h2>
             <p>Customize your startpage experience</p>
 
             <div class="settings-grid">
+                <!-- Theme Settings -->
                 <div class="settings-card">
                     <h3>🎨 Theme & Colors</h3>
                     
@@ -483,6 +472,7 @@
                     </div>
                 </div>
 
+                <!-- Layout Settings -->
                 <div class="settings-card">
                     <h3>📐 Layout</h3>
                     
@@ -513,6 +503,7 @@
                     </div>
                 </div>
 
+                <!-- Search Settings -->
                 <div class="settings-card">
                     <h3>🔍 Search</h3>
                     
@@ -543,6 +534,7 @@
                     </div>
                 </div>
 
+                <!-- Display Settings -->
                 <div class="settings-card">
                     <h3>🖥️ Display</h3>
                     
@@ -572,6 +564,7 @@
                     </div>
                 </div>
 
+                <!-- Privacy & Data -->
                 <div class="settings-card">
                     <h3>🔒 Privacy & Data</h3>
                     
@@ -597,6 +590,7 @@
                     </div>
                 </div>
 
+                <!-- Advanced -->
                 <div class="settings-card">
                     <h3>🔧 Advanced</h3>
                     
@@ -634,10 +628,7 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Configuration
-        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
-
+        // Initialize
         const DEFAULT_SETTINGS = {
             themeMode: 'dark',
             accentColor: '#3b82f6',
@@ -658,7 +649,6 @@
 
         let settings = { ...DEFAULT_SETTINGS };
         let workspaces = [];
-        let bookmarks = [];
 
         // Load settings and workspaces
         function loadSettings() {
@@ -673,42 +663,15 @@
             }
         }
 
-        async function loadWorkspacesFromSupabase() {
+        function loadWorkspaces() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=workspace`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    bookmarks = data;
-                    
-                    // Get unique workspaces
-                    const uniqueWorkspaces = [...new Set(data.map(b => b.workspace))];
-                    
-                    // Create workspace objects
-                    workspaces = uniqueWorkspaces.map(ws => ({
-                        id: ws,
-                        name: ws.charAt(0).toUpperCase() + ws.slice(1).replace(/_/g, ' ')
-                    }));
-                    
-                    // Sort: default first, then alphabetically
-                    workspaces.sort((a, b) => {
-                        if (a.id === 'default') return -1;
-                        if (b.id === 'default') return 1;
-                        return a.name.localeCompare(b.name);
-                    });
-                    
-                    localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
-                    renderWorkspaces();
-                    return true;
-                }
+                const stored = localStorage.getItem('niuWorkspaces');
+                workspaces = stored ? JSON.parse(stored) : [
+                    { id: 'default', name: 'Default', bookmarks: [] }
+                ];
+                renderWorkspaces();
             } catch (e) {
                 console.error('Error loading workspaces:', e);
-                return false;
             }
         }
 
@@ -753,44 +716,85 @@
             localStorage.setItem('niuSettings', JSON.stringify(settings));
             showToast('✅ Settings saved successfully!');
             
+            // Notify index.html to reload settings
             window.dispatchEvent(new Event('storage'));
         }
 
         // Render workspaces
         function renderWorkspaces() {
             const container = document.getElementById('workspaceList');
-            
-            if (workspaces.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No workspaces found. Sync from Supabase to load workspaces.</p>';
-                return;
-            }
+            const bookmarks = getBookmarks();
             
             container.innerHTML = workspaces.map(ws => {
-                const count = bookmarks.filter(b => b.workspace === ws.id).length;
+                const count = ws.bookmarks ? ws.bookmarks.length : 0;
                 return `
                     <div class="workspace-item">
                         <div class="workspace-info">
                             <div class="workspace-name">${ws.name}</div>
-                            <div class="workspace-id">ID: ${ws.id}</div>
                             <div class="workspace-count">${count} bookmarks</div>
                         </div>
                         <div class="workspace-actions">
-                            <button class="icon-btn" onclick="viewWorkspace('${ws.id}')" title="View in main page">👁️</button>
+                            <button class="icon-btn" onclick="editWorkspace('${ws.id}')">✏️</button>
+                            ${ws.id !== 'default' ? `<button class="icon-btn" onclick="deleteWorkspace('${ws.id}')">🗑️</button>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // View workspace
-        window.viewWorkspace = function(workspaceId) {
-            localStorage.setItem('currentWorkspace', workspaceId);
-            window.open('index.html', '_blank');
+        // Workspace functions
+        window.addWorkspace = function() {
+            const name = prompt('Enter workspace name:');
+            if (name && name.trim()) {
+                const id = 'ws_' + Date.now();
+                workspaces.push({ id, name: name.trim(), bookmarks: [] });
+                localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
+                renderWorkspaces();
+                showToast('✅ Workspace created!');
+            }
+        };
+
+        window.editWorkspace = function(id) {
+            const ws = workspaces.find(w => w.id === id);
+            if (ws) {
+                const newName = prompt('Enter new name:', ws.name);
+                if (newName && newName.trim()) {
+                    ws.name = newName.trim();
+                    localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
+                    renderWorkspaces();
+                    showToast('✅ Workspace updated!');
+                }
+            }
+        };
+
+        window.deleteWorkspace = function(id) {
+            if (confirm('Delete this workspace? Bookmarks will be moved to Default.')) {
+                const ws = workspaces.find(w => w.id === id);
+                if (ws && ws.bookmarks) {
+                    const defaultWs = workspaces.find(w => w.id === 'default');
+                    if (defaultWs) {
+                        defaultWs.bookmarks = [...(defaultWs.bookmarks || []), ...ws.bookmarks];
+                    }
+                }
+                workspaces = workspaces.filter(w => w.id !== id);
+                localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
+                renderWorkspaces();
+                showToast('✅ Workspace deleted!');
+            }
         };
 
         // Helper functions
+        function getBookmarks() {
+            try {
+                const stored = localStorage.getItem('bookmarks');
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
         function getBookmarkCount() {
-            return bookmarks.length;
+            return getBookmarks().length;
         }
 
         function updateStatusPanel() {
@@ -853,9 +857,11 @@
                 tab.addEventListener('click', (e) => {
                     e.preventDefault();
                     
+                    // Update active tab
                     document.querySelector('.tab.active').classList.remove('active');
                     tab.classList.add('active');
                     
+                    // Show corresponding panel
                     panels.forEach(p => p.classList.remove('active'));
                     const panelId = tab.dataset.panel + 'Panel';
                     document.getElementById(panelId).classList.add('active');
@@ -876,13 +882,11 @@
         });
 
         // Export settings
-        document.getElementById('exportSettings').addEventListener('click', async () => {
-            await loadWorkspacesFromSupabase();
-            
+        document.getElementById('exportSettings').addEventListener('click', () => {
             const data = {
                 settings,
                 workspaces,
-                bookmarks,
+                bookmarks: getBookmarks(),
                 exportDate: new Date().toISOString()
             };
             
@@ -923,6 +927,10 @@
                                 renderWorkspaces();
                             }
                             
+                            if (data.bookmarks) {
+                                localStorage.setItem('bookmarks', JSON.stringify(data.bookmarks));
+                            }
+                            
                             showToast('📥 Settings imported successfully!');
                             updateStatusPanel();
                         } catch (err) {
@@ -945,6 +953,7 @@
                 applySettingsToUI();
                 showToast('🔄 Settings reset to default!');
                 
+                // Apply theme immediately
                 document.documentElement.setAttribute('data-theme', settings.themeMode);
                 localStorage.setItem('theme', settings.themeMode);
             }
@@ -953,22 +962,13 @@
         // Save all settings
         document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
 
-        // Sync workspaces button
-        document.getElementById('syncWorkspacesBtn').addEventListener('click', async () => {
-            showToast('🔄 Syncing workspaces...');
-            const success = await loadWorkspacesFromSupabase();
-            if (success) {
-                updateStatusPanel();
-                showToast('✅ Workspaces synced!');
-            } else {
-                showToast('❌ Failed to sync workspaces');
-            }
-        });
+        // Add workspace button
+        document.getElementById('addWorkspaceBtn').addEventListener('click', addWorkspace);
 
         // Initialize everything
-        async function init() {
+        function init() {
             loadSettings();
-            await loadWorkspacesFromSupabase();
+            loadWorkspaces();
             updateStatusPanel();
             updateNetwork();
             updateSyncFlag();
