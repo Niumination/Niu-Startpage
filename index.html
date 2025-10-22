@@ -1,4 +1,469 @@
-<!DOCTYPE html>
+// Sync workspaces from Supabase
+        async function syncWorkspacesFromSupabase() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    workspaces = data;
+                    localStorage.setItem('niuWorkspaces', JSON.stringify(workspaces));
+                    
+                    // Check if we need to switch to a specific workspace
+                    const switchTo = localStorage.getItem('switchToWorkspace');
+                    if (switchTo) {
+                        currentWorkspace = switchTo;
+                        localStorage.removeItem('switchToWorkspace');
+                    }
+                }
+            } catch (error) {
+                console.error('Error syncing workspaces:', error);
+                // Fallback to localStorage
+                const stored = localStorage.getItem('niuWorkspaces');
+                workspaces = stored ? JSON.parse(stored) : [
+                    { id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }
+                ];
+            }
+        }
+
+        // Render workspace tabs with shortcuts
+        function renderWorkspaceTabs() {
+            const container = document.getElementById('workspaceTabs');
+            container.innerHTML = workspaces.map((ws, idx) => `
+                <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
+                     data-workspace="${ws.id}"
+                     style="border-color: ${ws.id === currentWorkspace ? ws.color : 'rgba(255, 255, 255, 0.15)'}">
+                    ${ws.icon} ${ws.name}
+                    ${idx < 9 ? `<span class="workspace-shortcut">${idx + 1}</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Load bookmarks from Supabase
+        async function loadBookmarksFromSupabase() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load');
+                
+                const data = await response.json();
+                bookmarks = data.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    url: item.url,
+                    chord: item.chord,
+                    workspace: item.workspace || 'default'
+                }));
+                
+                localStorage.setItem('lastSyncOk', 'true');
+                renderBookmarks();
+            } catch (error) {
+                console.error('Load error:', error);
+                localStorage.setItem('lastSyncOk', 'false');
+            }
+        }
+
+        // Render bookmarks
+        function renderBookmarks() {
+            const container = document.getElementById('bookmarks');
+            const filtered = bookmarks.filter(b => b.workspace === currentWorkspace);
+            
+            container.className = 'bookmarks';
+            if (settings.cardSize) {
+                container.classList.add('size-' + settings.cardSize);
+            }
+            
+            if (filtered.length === 0) {
+                const currentWs = workspaces.find(w => w.id === currentWorkspace);
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">${currentWs ? currentWs.icon : '📚'}</div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">No bookmarks in ${currentWs ? currentWs.name : 'this workspace'} yet</h3>
+                        <p>Click "Add Bookmark" to create one!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(b => `
+                <div class="bookmark-card ${settings.cardStyle ? 'style-' + settings.cardStyle : ''}">
+                    <a href="${b.url}" class="bookmark-link" target="_blank" rel="noopener noreferrer">
+                        <div class="bookmark-title">
+                            <span>${b.title}</span>
+                            ${b.chord ? `<span class="bookmark-chord">${b.chord}</span>` : ''}
+                        </div>
+                        ${settings.showUrls ? `<div class="bookmark-url show">${b.url}</div>` : `<div class="bookmark-url">${b.url}</div>`}
+                    </a>
+                    <div class="bookmark-actions">
+                        <button class="icon-btn" onclick="editBookmark(${b.id})" title="Edit bookmark">
+                            ✏️
+                        </button>
+                        <button class="icon-btn delete" onclick="deleteBookmark(${b.id})" title="Delete bookmark">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Edit bookmark
+        window.editBookmark = async function(id) {
+            const bookmark = bookmarks.find(b => b.id === id);
+            if (!bookmark) return;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Bookmark';
+            document.getElementById('editBookmarkId').value = id;
+            document.getElementById('bookmarkTitle').value = bookmark.title;
+            document.getElementById('bookmarkUrl').value = bookmark.url;
+            document.getElementById('bookmarkChord').value = bookmark.chord || '';
+            
+            const workspaceSelect = document.getElementById('bookmarkWorkspace');
+            workspaceSelect.innerHTML = workspaces.map(ws => 
+                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
+            ).join('');
+            
+            document.getElementById('bookmarkModal').classList.add('active');
+            document.getElementById('bookmarkTitle').focus();
+        };
+
+        // Delete bookmark
+        window.deleteBookmark = async function(id) {
+            if (!confirm('Delete this bookmark?')) return;
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    bookmarks = bookmarks.filter(b => b.id !== id);
+                    renderBookmarks();
+                    showToast('🗑️ Bookmark deleted');
+                } else {
+                    throw new Error('Failed to delete');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('❌ Failed to delete bookmark');
+            }
+        };
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('keydown', handleSearch);
+            searchInput.addEventListener('input', handleChordInput);
+
+            // Search engine buttons
+            document.querySelectorAll('.engine-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentEngine = btn.dataset.engine;
+                    document.querySelectorAll('.engine-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Alt + key for search engines
+                if (e.altKey) {
+                    const engineBtn = document.querySelector(`[data-key="${e.key}"]`);
+                    if (engineBtn) {
+                        e.preventDefault();
+                        engineBtn.click();
+                        searchInput.focus();
+                    }
+                }
+                
+                // Number keys (1-9) for workspace switching
+                if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey && document.activeElement !== searchInput) {
+                    const index = parseInt(e.key) - 1;
+                    if (index < workspaces.length) {
+                        switchWorkspace(workspaces[index].id);
+                    }
+                }
+                
+                // Focus search with =
+                if (e.key === '=' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+
+                // Close modal with Escape
+                if (e.key === 'Escape') {
+                    closeBookmarkModal();
+                }
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                settings.themeMode = settings.themeMode === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('niuSettings', JSON.stringify(settings));
+                applySettings();
+                showToast(settings.themeMode === 'dark' ? '🌙 Dark mode' : '☀️ Light mode');
+            });
+
+            // Add bookmark
+            document.getElementById('addBookmarkBtn').addEventListener('click', openAddBookmarkModal);
+            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
+            document.getElementById('cancelBookmark').addEventListener('click', closeBookmarkModal);
+
+            // Load from Supabase
+            document.getElementById('loadBtn').addEventListener('click', async () => {
+                showToast('📥 Loading...');
+                await syncWorkspacesFromSupabase();
+                await loadBookmarksFromSupabase();
+                renderWorkspaceTabs();
+                showToast('✅ Loaded from Supabase!');
+            });
+
+            // Sync with Supabase
+            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase);
+
+            // Workspace tabs
+            document.getElementById('workspaceTabs').addEventListener('click', (e) => {
+                if (e.target.classList.contains('workspace-tab') || e.target.closest('.workspace-tab')) {
+                    const tab = e.target.classList.contains('workspace-tab') ? e.target : e.target.closest('.workspace-tab');
+                    switchWorkspace(tab.dataset.workspace);
+                }
+            });
+
+            // Close modal on background click
+            document.getElementById('bookmarkModal').addEventListener('click', (e) => {
+                if (e.target.id === 'bookmarkModal') {
+                    closeBookmarkModal();
+                }
+            });
+
+            // Listen for settings changes
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'niuSettings') {
+                    loadSettings();
+                    applySettings();
+                    renderBookmarks();
+                }
+            });
+        }
+
+        // Switch workspace
+        function switchWorkspace(workspaceId) {
+            currentWorkspace = workspaceId;
+            const currentWs = workspaces.find(w => w.id === workspaceId);
+            
+            document.querySelectorAll('.workspace-tab').forEach(t => {
+                t.classList.remove('active');
+                t.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+            });
+            
+            const tab = document.querySelector(`[data-workspace="${workspaceId}"]`);
+            if (tab) {
+                tab.classList.add('active');
+                if (currentWs) {
+                    tab.style.borderColor = currentWs.color;
+                }
+            }
+            
+            renderBookmarks();
+        }
+
+        // Handle search
+        function handleSearch(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) {
+                    const url = searchEngines[currentEngine] + encodeURIComponent(query);
+                    if (settings.searchNewTab) {
+                        window.open(url, '_blank');
+                    } else {
+                        window.location.href = url;
+                    }
+                    e.target.value = '';
+                }
+            }
+        }
+
+        // Handle chord input
+        function handleChordInput(e) {
+            const input = e.target.value.toUpperCase();
+            
+            if (input.length === 2) {
+                const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === input);
+                if (bookmark) {
+                    window.open(bookmark.url, '_blank');
+                    e.target.value = '';
+                    return;
+                }
+            }
+            
+            clearTimeout(chordTimeout);
+            chordTimeout = setTimeout(() => {
+                chordBuffer = '';
+            }, 1000);
+        }
+
+        // Modal functions
+        function openAddBookmarkModal() {
+            document.getElementById('modalTitle').textContent = 'Add Bookmark';
+            document.getElementById('editBookmarkId').value = '';
+            document.getElementById('bookmarkTitle').value = '';
+            document.getElementById('bookmarkUrl').value = '';
+            document.getElementById('bookmarkChord').value = '';
+            
+            const workspaceSelect = document.getElementById('bookmarkWorkspace');
+            workspaceSelect.innerHTML = workspaces.map(ws => 
+                `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
+            ).join('');
+            
+            document.getElementById('bookmarkModal').classList.add('active');
+            document.getElementById('bookmarkTitle').focus();
+        }
+
+        function closeBookmarkModal() {
+            document.getElementById('bookmarkModal').classList.remove('active');
+        }
+
+        async function saveBookmark() {
+            const id = document.getElementById('editBookmarkId').value;
+            const title = document.getElementById('bookmarkTitle').value.trim();
+            const url = document.getElementById('bookmarkUrl').value.trim();
+            const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
+            const workspace = document.getElementById('bookmarkWorkspace').value;
+            
+            if (!title || !url) {
+                showToast('❌ Title and URL are required!');
+                return;
+            }
+            
+            // Add protocol if missing
+            let fullUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                fullUrl = 'https://' + url;
+            }
+            
+            // Check if chord already exists (except for current bookmark when editing)
+            if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord && b.id != id)) {
+                showToast('❌ Chord already exists!');
+                return;
+            }
+            
+            try {
+                if (id) {
+                    // Update existing bookmark
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({
+                            title,
+                            url: fullUrl,
+                            chord: chord || null,
+                            workspace
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const [updated] = await response.json();
+                        const index = bookmarks.findIndex(b => b.id == id);
+                        if (index !== -1) {
+                            bookmarks[index] = {
+                                id: updated.id,
+                                title: updated.title,
+                                url: updated.url,
+                                chord: updated.chord,
+                                workspace: updated.workspace
+                            };
+                        }
+                        showToast('✅ Bookmark updated!');
+                    } else {
+                        throw new Error('Failed to update');
+                    }
+                } else {
+                    // Add new bookmark
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({
+                            title,
+                            url: fullUrl,
+                            chord: chord || null,
+                            workspace
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const [newBookmark] = await response.json();
+                        bookmarks.push({
+                            id: newBookmark.id,
+                            title: newBookmark.title,
+                            url: newBookmark.url,
+                            chord: newBookmark.chord,
+                            workspace: newBookmark.workspace
+                        });
+                        showToast('✅ Bookmark added!');
+                    } else {
+                        throw new Error('Failed to add');
+                    }
+                }
+                
+                renderBookmarks();
+                closeBookmarkModal();
+                
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('❌ Failed to save bookmark');
+            }
+        }
+
+        async function syncWithSupabase() {
+            try {
+                showToast('🔄 Syncing with Supabase...');
+                await syncWorkspacesFromSupabase();
+                await loadBookmarksFromSupabase();
+                renderWorkspaceTabs();
+                localStorage.setItem('lastSyncOk', 'true');
+                showToast('✅ Synced with Supabase!');
+            } catch (error) {
+                console.error('Sync error:', error);
+                localStorage.setItem('lastSyncOk', 'false');
+                showToast('❌ Failed to sync with Supabase');
+            }
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
