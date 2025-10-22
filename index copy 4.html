@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niu Startpage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b6b6b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            padding-bottom: 5rem;
+            transition: all 0.3s ease;
+        }
+
+        body.custom-bg {
+            background-image: var(--custom-bg);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        body.no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        body.font-small { font-size: 14px; }
+        body.font-medium { font-size: 16px; }
+        body.font-large { font-size: 18px; }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .container.compact { padding: 1rem; }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .workspace-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .workspace-tab {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workspace-tab:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .workspace-tab.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .workspace-shortcut {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .search-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .engine-selector {
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            cursor: pointer;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            transition: background 0.2s;
+            min-width: 120px;
+        }
+
+        .engine-selector:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .engine-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.5rem;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .engine-dropdown.show {
+            display: block;
+        }
+
+        .engine-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .engine-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .engine-option.active {
+            background: var(--accent);
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        #searchInput:focus {
+            outline: none;
+        }
+
+        .chord-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: var(--accent);
+            color: white;
+            padding: 2rem 3rem;
+            border-radius: 20px;
+            font-size: 3rem;
+            font-weight: 700;
+            z-index: 9999;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .chord-indicator.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .bookmarks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .bookmarks.card-small {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .bookmarks.card-large {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .bookmark-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bookmark-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .bookmark-card.chord-accessed {
+            animation: chordPulse 0.6s ease-out;
+        }
+
+        @keyframes chordPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 var(--accent); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px transparent; }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+        }
+
+        .bookmark-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .bookmark-card:hover::before {
+            left: 100%;
+        }
+
+        .bookmark-card.card-solid {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: none;
+        }
+
+        .bookmark-card.card-outlined {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .bookmark-card.compact {
+            padding: 0.75rem 1rem;
+        }
+
+        .bookmark-link {
+            flex: 1;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .bookmark-title {
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bookmark-url {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .bookmark-url.show {
+            opacity: 1;
+            max-height: 20px;
+        }
+
+        .bookmark-chord {
+            font-size: 0.75rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .bookmark-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .icon-btn.delete:hover {
+            background: #ef4444;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(200px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .bookmarks {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chord-indicator" id="chordIndicator"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📚 Niu Startpage</h1>
+            <p>Press <kbd>=</kbd> to search • <kbd>Type 2 letters</kbd> for chord shortcuts</p>
+        </div>
+
+        <div class="workspace-tabs" id="workspaceTabs">
+            <div class="loading">Loading workspaces...</div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-wrapper">
+                <div class="engine-selector" id="engineSelector">
+                    <span id="currentEngine">Google</span>
+                    <span style="margin-left: auto;">▼</span>
+                </div>
+                <input type="text" id="searchInput" placeholder="Search or enter chord..." autocomplete="off">
+            </div>
+            <div class="engine-dropdown" id="engineDropdown">
+                <div class="engine-option active" data-engine="google">🔍 Google</div>
+                <div class="engine-option" data-engine="searxng">🔎 SearXNG</div>
+                <div class="engine-option" data-engine="duckduckgo">🦆 DuckDuckGo</div>
+                <div class="engine-option" data-engine="youtube">📺 YouTube</div>
+            </div>
+        </div>
+
+        <div class="bookmarks" id="bookmarks">
+            <div class="loading">Loading bookmarks...</div>
+        </div>
+
+        <div class="controls">
+            <a class="btn" href="navigation.html">📊 Navigation</a>
+            <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
+            <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
+            <button class="btn" id="syncBtn">🔄 Sync</button>
+        </div>
+    </div>
+
+    <div class="modal" id="bookmarkModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Bookmark</h2>
+            <input type="hidden" id="editBookmarkId">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="bookmarkTitle" placeholder="e.g. Hacker News">
+            </div>
+            <div class="form-group">
+                <label>URL</label>
+                <input type="text" id="bookmarkUrl" placeholder="news.ycombinator.com">
+            </div>
+            <div class="form-group">
+                <label>Chord (2 letters)</label>
+                <input type="text" id="bookmarkChord" placeholder="e.g. HN" maxlength="2">
+            </div>
+            <div class="form-group">
+                <label>Workspace</label>
+                <select id="bookmarkWorkspace"></select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="saveBookmark">Save</button>
+                <button class="btn" id="cancelBookmark">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Developed by <a href="https://github.com/Niumination" target="_blank" rel="noopener">Niumination</a>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
+
+        const searchEngines = {
+            google: 'https://www.google.com/search?q=',
+            searxng: 'https://searx.fmhy.net/search?q=',
+            duckduckgo: 'https://duckduckgo.com/?q=',
+            youtube: 'https://www.youtube.com/results?search_query='
+        };
+
+        const DEFAULT_SETTINGS = {
+            themeMode: 'dark',
+            accentColor: '#3b82f6',
+            bgType: 'gradient',
+            bgUrl: '',
+            cardSize: 'medium',
+            cardStyle: 'glass',
+            showAnimations: true,
+            defaultEngine: 'google',
+            searchNewTab: true,
+            fontSize: 'medium',
+            showUrls: false,
+            compactMode: false
+        };
+
+        let bookmarks = [];
+        let workspaces = [];
+        let currentWorkspace = 'default';
+        let currentEngine = 'google';
+        let settings = { ...DEFAULT_SETTINGS };
+        let chordBuffer = '';
+        let chordTimeout = null;
+
+        async function init() {
+            loadSettings();
+            applySettings();
+            await loadWorkspaces();
+            await loadBookmarks();
+            renderWorkspaceTabs();
+            renderBookmarks();
+            setupEventListeners();
+            setupGlobalChordListener();
+        }
+
+        function loadSettings() {
+            try {
+                const stored = localStorage.getItem('niuSettings');
+                if (stored) {
+                    settings = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+                }
+            } catch (e) {
+                console.error('Settings load error:', e);
+            }
+        }
+
+        function applySettings() {
+            // Theme
+            document.documentElement.setAttribute('data-theme', settings.themeMode);
+            
+            // Accent color
+            if (settings.accentColor) {
+                document.documentElement.style.setProperty('--accent', settings.accentColor);
+            }
+
+            // Search engine
+            if (settings.defaultEngine && searchEngines[settings.defaultEngine]) {
+                currentEngine = settings.defaultEngine;
+                updateEngineDisplay();
+            }
+
+            // Background
+            if (settings.bgType === 'image' && settings.bgUrl) {
+                document.body.classList.add('custom-bg');
+                document.body.style.setProperty('--custom-bg', `url(${settings.bgUrl})`);
+            } else {
+                document.body.classList.remove('custom-bg');
+            }
+
+            // Animations
+            if (!settings.showAnimations) {
+                document.body.classList.add('no-animations');
+            } else {
+                document.body.classList.remove('no-animations');
+            }
+
+            // Font size
+            document.body.classList.remove('font-small', 'font-medium', 'font-large');
+            document.body.classList.add(`font-${settings.fontSize}`);
+
+            // Compact mode
+            const container = document.querySelector('.container');
+            if (settings.compactMode) {
+                container.classList.add('compact');
+                document.querySelectorAll('.bookmark-card').forEach(card => {
+                    card.classList.add('compact');
+                });
+            } else {
+                container.classList.remove('compact');
+                document.querySelectorAll('.bookmark-card').forEach(card => {
+                    card.classList.remove('compact');
+                });
+            }
+
+            // Card size
+            const bookmarksContainer = document.getElementById('bookmarks');
+            bookmarksContainer.classList.remove('card-small', 'card-medium', 'card-large');
+            bookmarksContainer.classList.add(`card-${settings.cardSize}`);
+
+            // Show URLs
+            document.querySelectorAll('.bookmark-url').forEach(url => {
+                if (settings.showUrls) {
+                    url.classList.add('show');
+                } else {
+                    url.classList.remove('show');
+                }
+            });
+
+            // Card style
+            document.querySelectorAll('.bookmark-card').forEach(card => {
+                card.classList.remove('card-solid', 'card-outlined', 'card-glass');
+                if (settings.cardStyle !== 'glass') {
+                    card.classList.add(`card-${settings.cardStyle}`);
+                }
+            });
+        }
+
+        // Listen for settings changes from navigation.html
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'niuSettings') {
+                loadSettings();
+                applySettings();
+                showToast('⚙️ Settings updated!');
+            }
+        });
+
+        // Also listen for custom event (same-window updates)
+        window.addEventListener('settingsUpdated', () => {
+            loadSettings();
+            applySettings();
+        });
+
+        async function loadWorkspaces() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    workspaces = await response.json();
+                    if (workspaces.length === 0) {
+                        workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
+                    }
+                } else {
+                    throw new Error('Failed to load workspaces');
+                }
+            } catch (error) {
+                console.error('Load workspaces error:', error);
+                workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
+                showToast('⚠️ Using offline workspaces');
+            }
+        }
+
+        async function loadBookmarks() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    bookmarks = await response.json();
+                } else {
+                    throw new Error('Failed to load bookmarks');
+                }
+            } catch (error) {
+                console.error('Load bookmarks error:', error);
+                showToast('⚠️ Failed to load bookmarks');
+            }
+        }
+
+        function renderWorkspaceTabs() {
+            const container = document.getElementById('workspaceTabs');
+            container.innerHTML = workspaces.map((ws, idx) => `
+                <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
+                     data-workspace="${ws.id}"
+                     style="border-color: ${ws.id === currentWorkspace ? ws.color : 'rgba(255, 255, 255, 0.15)'}">
+                    ${ws.icon} ${ws.name}
+                    ${idx < 9 ? `<span class="workspace-shortcut">${idx + 1}</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderBookmarks() {
+            const container = document.getElementById('bookmarks');
+            const filtered = bookmarks.filter(b => b.workspace === currentWorkspace);
+            
+            if (filtered.length === 0) {
+                const ws = workspaces.find(w => w.id === currentWorkspace);
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">${ws ? ws.icon : '📚'}</div>
+                        <h3 style="color: var(--text-primary);">No bookmarks in ${ws ? ws.name : 'this workspace'}</h3>
+                        <p>Click "Add Bookmark" to create one!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(b => `
+                <div class="bookmark-card ${settings.cardStyle !== 'glass' ? 'card-' + settings.cardStyle : ''} ${settings.compactMode ? 'compact' : ''}" data-bookmark-id="${b.id}">
+                    <a href="${b.url}" class="bookmark-link" target="_blank" rel="noopener">
+                        <div class="bookmark-title">
+                            <span>${b.title}</span>
+                            ${b.chord ? `<span class="bookmark-chord">${b.chord}</span>` : ''}
+                        </div>
+                        <div class="bookmark-url ${settings.showUrls ? 'show' : ''}">${b.url}</div>
+                    </a>
+                    <div class="bookmark-actions">
+                        <button class="icon-btn" onclick="editBookmark(${b.id})">✏️</button>
+                        <button class="icon-btn delete" onclick="deleteBookmark(${b.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setupGlobalChordListener() {
+            document.addEventListener('keydown', (e) => {
+                // Ignore if typing in input/textarea
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                // Only handle letter keys
+                if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                    e.preventDefault();
+                    
+                    chordBuffer += e.key.toUpperCase();
+                    
+                    // Clear buffer after 1 second of inactivity
+                    if (chordTimeout) clearTimeout(chordTimeout);
+                    chordTimeout = setTimeout(() => {
+                        chordBuffer = '';
+                    }, 1000);
+
+                    // Show chord indicator
+                    const indicator = document.getElementById('chordIndicator');
+                    indicator.textContent = chordBuffer;
+                    indicator.classList.add('show');
+                    
+                    // Check if we have 2 characters
+                    if (chordBuffer.length === 2) {
+                        const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === chordBuffer);
+                        
+                        if (bookmark) {
+                            // Add visual effect to the card
+                            const card = document.querySelector(`[data-bookmark-id="${bookmark.id}"]`);
+                            if (card) {
+                                card.classList.add('chord-accessed');
+                                setTimeout(() => card.classList.remove('chord-accessed'), 600);
+                            }
+                            
+                            // Open the bookmark
+                            setTimeout(() => {
+                                window.open(bookmark.url, settings.searchNewTab ? '_blank' : '_self');
+                            }, 300);
+                            
+                            showToast(`🚀 Opening: ${bookmark.title}`);
+                        } else {
+                            showToast(`❌ Chord "${chordBuffer}" not found`);
+                        }
+                        
+                        chordBuffer = '';
+                        setTimeout(() => {
+                            indicator.classList.remove('show');
+                        }, 500);
+                    }
+                }
+            });
+        }
+
+        window.editBookmark = function(id) {
+            const bookmark = bookmarks.find(b => b.id === id);
+            if (!bookmark) return;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Bookmark';
+            document.getElementById('editBookmarkId').value = id;
+            document.getElementById('bookmarkTitle').value = bookmark.title;
+            document.getElementById('bookmarkUrl').value = bookmark.url;
+            document.getElementById('bookmarkChord').value = bookmark.chord || '';
+            
+            const select = document.getElementById('bookmarkWorkspace');
+            select.innerHTML = workspaces.map(ws => 
+                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
+            ).join('');
+            
+            document.getElementById('bookmarkModal').classList.add('active');
+        };
+
+        window.deleteBookmark = async function(id) {
+            if (!confirm('Delete this bookmark?')) return;
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    bookmarks = bookmarks.filter(b => b.id !== id);
+                    renderBookmarks();
+                    showToast('✅ Deleted');
+                }
+            } catch (error) {
+                showToast('❌ Delete failed');
+            }
+        };
+
+        function updateEngineDisplay() {
+            const engineNames = {
+                google: 'Google',
+                searxng: 'SearXNG',
+                duckduckgo: 'DuckDuckGo',
+                youtube: 'YouTube'
+            };
+            document.getElementById('currentEngine').textContent = engineNames[currentEngine] || 'Google';
+            
+            document.querySelectorAll('.engine-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.engine === currentEngine);
+            });
+        }
+
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            const engineSelector = document.getElementById('engineSelector');
+            const engineDropdown = document.getElementById('engineDropdown');
+            
+            engineSelector.addEventListener('click', (e) => {
+                e.stopPropagation();
+                engineDropdown.classList.toggle('show');
+            });
+
+            document.addEventListener('click', () => {
+                engineDropdown.classList.remove('show');
+            });
+
+            engineDropdown.addEventListener('click', (e) => {
+                const option = e.target.closest('.engine-option');
+                if (option) {
+                    currentEngine = option.dataset.engine;
+                    updateEngineDisplay();
+                    engineDropdown.classList.remove('show');
+                }
+            });
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query) {
+                        const url = searchEngines[currentEngine] + encodeURIComponent(query);
+                        window.open(url, settings.searchNewTab ? '_blank' : '_self');
+                        e.target.value = '';
+                    }
+                }
+            });
+
+            searchInput.addEventListener('input', (e) => {
+                const input = e.target.value.toUpperCase();
+                if (input.length === 2) {
+                    const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === input);
+                    if (bookmark) {
+                        const card = document.querySelector(`[data-bookmark-id="${bookmark.id}"]`);
+                        if (card) {
+                            card.classList.add('chord-accessed');
+                            setTimeout(() => card.classList.remove('chord-accessed'), 600);
+                        }
+                        window.open(bookmark.url, '_blank');
+                        e.target.value = '';
+                        showToast(`🚀 Opening: ${bookmark.title}`);
+                    }
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9' && document.activeElement !== searchInput) {
+                    const idx = parseInt(e.key) - 1;
+                    if (idx < workspaces.length) {
+                        switchWorkspace(workspaces[idx].id);
+                    }
+                }
+                
+                if (e.key === '=' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                
+                if (e.key === 'Escape') {
+                    document.getElementById('bookmarkModal').classList.remove('active');
+                    searchInput.blur();
+                }
+            });
+
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                settings.themeMode = settings.themeMode === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('niuSettings', JSON.stringify(settings));
+                applySettings();
+                showToast(settings.themeMode === 'dark' ? '🌙 Dark' : '☀️ Light');
+            });
+
+            document.getElementById('addBookmarkBtn').addEventListener('click', () => {
+                document.getElementById('modalTitle').textContent = 'Add Bookmark';
+                document.getElementById('editBookmarkId').value = '';
+                document.getElementById('bookmarkTitle').value = '';
+                document.getElementById('bookmarkUrl').value = '';
+                document.getElementById('bookmarkChord').value = '';
+                
+                const select = document.getElementById('bookmarkWorkspace');
+                select.innerHTML = workspaces.map(ws => 
+                    `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
+                ).join('');
+                
+                document.getElementById('bookmarkModal').classList.add('active');
+            });
+
+            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
+            
+            document.getElementById('cancelBookmark').addEventListener('click', () => {
+                document.getElementById('bookmarkModal').classList.remove('active');
+            });
+
+            document.getElementById('syncBtn').addEventListener('click', async () => {
+                showToast('🔄 Syncing...');
+                await loadWorkspaces();
+                await loadBookmarks();
+                renderWorkspaceTabs();
+                renderBookmarks();
+                showToast('✅ Synced!');
+            });
+
+            document.getElementById('workspaceTabs').addEventListener('click', (e) => {
+                const tab = e.target.closest('.workspace-tab');
+                if (tab) {
+                    switchWorkspace(tab.dataset.workspace);
+                }
+            });
+
+            document.getElementById('bookmarkModal').addEventListener('click', (e) => {
+                if (e.target.id === 'bookmarkModal') {
+                    e.target.classList.remove('active');
+                }
+            });
+        }
+
+        function switchWorkspace(id) {
+            currentWorkspace = id;
+            renderWorkspaceTabs();
+            renderBookmarks();
+        }
+
+        async function saveBookmark() {
+            const id = document.getElementById('editBookmarkId').value;
+            const title = document.getElementById('bookmarkTitle').value.trim();
+            const url = document.getElementById('bookmarkUrl').value.trim();
+            const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
+            const workspace = document.getElementById('bookmarkWorkspace').value;
+            
+            if (!title || !url) {
+                showToast('❌ Title and URL required!');
+                return;
+            }
+            
+            let fullUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                fullUrl = 'https://' + url;
+            }
+            
+            if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord && b.id != id)) {
+                showToast('❌ Chord already exists!');
+                return;
+            }
+            
+            try {
+                if (id) {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
+                    });
+                    
+                    if (response.ok) {
+                        const [updated] = await response.json();
+                        const index = bookmarks.findIndex(b => b.id == id);
+                        if (index !== -1) bookmarks[index] = updated;
+                        showToast('✅ Updated!');
+                    } else {
+                        throw new Error('Update failed');
+                    }
+                } else {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
+                    });
+                    
+                    if (response.ok) {
+                        const [newBookmark] = await response.json();
+                        bookmarks.push(newBookmark);
+                        showToast('✅ Added!');
+                    } else {
+                        throw new Error('Create failed');
+                    }
+                }
+                
+                renderBookmarks();
+                document.getElementById('bookmarkModal').classList.remove('active');
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('❌ Save failed');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

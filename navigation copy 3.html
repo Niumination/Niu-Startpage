@@ -242,12 +242,6 @@
             margin-bottom: 0.5rem;
         }
 
-        .setting-desc {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-
         .setting-input, .setting-select {
             width: 100%;
             padding: 0.6rem;
@@ -475,6 +469,31 @@
             opacity: 1;
         }
 
+        .statusbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 0.5rem 0.85rem;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.35));
+            border-top: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            font-size: 0.8rem;
+        }
+
         .footer {
             position: fixed;
             bottom: 0;
@@ -504,7 +523,6 @@
             display: flex;
             gap: 1rem;
             margin-top: 0.5rem;
-            flex-wrap: wrap;
         }
 
         .radio-option {
@@ -515,16 +533,6 @@
 
         .radio-option input[type="radio"] {
             width: auto;
-        }
-
-        .color-preview {
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            border: 2px solid rgba(255,255,255,0.3);
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 0.5rem;
         }
 
         @media (max-width: 640px) {
@@ -604,84 +612,54 @@
 
         <!-- Settings Panel -->
         <div class="panel" id="settingsPanel">
-            <h2>⚙️ Settings</h2>
+            <h2>⚙️ Appearance & Customization</h2>
             <p>Customize your startpage experience</p>
 
             <div class="settings-grid">
-                <!-- Appearance Settings -->
                 <div class="settings-card">
-                    <h3>🎨 Appearance</h3>
+                    <h3>🎨 Theme & Colors</h3>
                     
                     <div class="setting-item">
                         <label class="setting-label">Theme Mode</label>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" name="themeMode" value="dark" id="themeDark">
-                                <label for="themeDark">🌙 Dark</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="themeMode" value="light" id="themeLight">
-                                <label for="themeLight">☀️ Light</label>
-                            </div>
-                        </div>
+                        <select class="setting-select" id="themeMode">
+                            <option value="dark">Dark Mode</option>
+                            <option value="light">Light Mode</option>
+                            <option value="auto">Auto (System)</option>
+                        </select>
                     </div>
 
                     <div class="setting-item">
                         <label class="setting-label">Accent Color</label>
                         <input type="color" class="setting-input" id="accentColor" value="#3b82f6">
-                        <div class="setting-desc">Choose your preferred accent color</div>
                     </div>
 
-                    <div class="setting-item">
-                        <label class="setting-label">Font Size</label>
-                        <select class="setting-select" id="fontSize">
-                            <option value="small">Small</option>
-                            <option value="medium">Medium</option>
-                            <option value="large">Large</option>
-                        </select>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Show Animations</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="showAnimations" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="setting-desc">Enable smooth transitions and effects</div>
-                    </div>
-                </div>
-
-                <!-- Background Settings -->
-                <div class="settings-card">
-                    <h3>🖼️ Background</h3>
-                    
                     <div class="setting-item">
                         <label class="setting-label">Background Type</label>
                         <div class="radio-group">
                             <div class="radio-option">
-                                <input type="radio" name="bgType" value="gradient" id="bgGradient">
-                                <label for="bgGradient">🌈 Gradient</label>
+                                <input type="radio" id="bgGradient" name="bgType" value="gradient" checked>
+                                <label for="bgGradient">Gradient</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" name="bgType" value="image" id="bgImage">
-                                <label for="bgImage">🖼️ Image</label>
+                                <input type="radio" id="bgImage" name="bgType" value="image">
+                                <label for="bgImage">Image</label>
                             </div>
                         </div>
                     </div>
 
-                    <div class="setting-item" id="bgUrlContainer" style="display: none;">
+                    <div class="setting-item" id="bgImageSettings" style="display: none;">
                         <label class="setting-label">Background Image URL</label>
                         <input type="text" class="setting-input" id="bgUrl" placeholder="https://example.com/image.jpg">
-                        <div class="setting-desc">Enter a URL for custom background image</div>
+                        <label class="setting-label" style="margin-top: 0.5rem;">Or Upload Image</label>
+                        <input type="file" class="setting-input" id="bgUpload" accept="image/*">
                     </div>
                 </div>
 
-                <!-- Card Settings -->
                 <div class="settings-card">
-                    <h3>🃏 Card Style</h3>
+                    <h3>📐 Layout</h3>
                     
                     <div class="setting-item">
-                        <label class="setting-label">Card Size</label>
+                        <label class="setting-label">Bookmark Card Size</label>
                         <select class="setting-select" id="cardSize">
                             <option value="small">Small</option>
                             <option value="medium">Medium</option>
@@ -692,32 +670,21 @@
                     <div class="setting-item">
                         <label class="setting-label">Card Style</label>
                         <select class="setting-select" id="cardStyle">
-                            <option value="glass">Glass (Default)</option>
+                            <option value="glass">Glassmorphism</option>
                             <option value="solid">Solid</option>
                             <option value="outlined">Outlined</option>
                         </select>
                     </div>
 
                     <div class="setting-item">
-                        <label class="setting-label">Show URLs</label>
+                        <label class="setting-label">Show Animations</label>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="showUrls">
+                            <input type="checkbox" id="showAnimations" checked>
                             <span class="toggle-slider"></span>
                         </label>
-                        <div class="setting-desc">Display bookmark URLs on cards</div>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Compact Mode</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="compactMode">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="setting-desc">Reduce spacing for more bookmarks</div>
                     </div>
                 </div>
 
-                <!-- Search Settings -->
                 <div class="settings-card">
                     <h3>🔍 Search</h3>
                     
@@ -732,87 +699,86 @@
                     </div>
 
                     <div class="setting-item">
-                        <label class="setting-label">Open in New Tab</label>
+                        <label class="setting-label">Search in New Tab</label>
                         <label class="toggle-switch">
                             <input type="checkbox" id="searchNewTab" checked>
                             <span class="toggle-slider"></span>
                         </label>
-                        <div class="setting-desc">Open search results in new tab</div>
                     </div>
                 </div>
 
-                <!-- Chord Settings -->
                 <div class="settings-card">
-                    <h3>⚡ Chord Shortcuts</h3>
+                    <h3>🖥️ Display</h3>
                     
                     <div class="setting-item">
-                        <label class="setting-label">Chord Timeout (ms)</label>
-                        <input type="number" class="setting-input" id="chordTimeout" value="1000" min="500" max="3000" step="100">
-                        <div class="setting-desc">Time window to input chord (500-3000ms)</div>
+                        <label class="setting-label">Font Size</label>
+                        <select class="setting-select" id="fontSize">
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                        </select>
                     </div>
 
                     <div class="setting-item">
-                        <label class="setting-label">Show Chord Indicator</label>
+                        <label class="setting-label">Show URL in Cards</label>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="showChordIndicator" checked>
+                            <input type="checkbox" id="showUrls">
                             <span class="toggle-slider"></span>
                         </label>
-                        <div class="setting-desc">Display chord popup when typing</div>
                     </div>
 
                     <div class="setting-item">
-                        <label class="setting-label">Chord Sound Effect</label>
+                        <label class="setting-label">Compact Mode</label>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="chordSound">
+                            <input type="checkbox" id="compactMode">
                             <span class="toggle-slider"></span>
                         </label>
-                        <div class="setting-desc">Play sound when chord is activated</div>
                     </div>
                 </div>
 
-                <!-- Advanced Settings -->
+                <div class="settings-card">
+                    <h3>🔒 Privacy & Data</h3>
+                    
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" id="exportSettings">📤 Export Settings</button>
+                    </div>
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" id="importSettings">📥 Import Settings</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
                 <div class="settings-card">
                     <h3>🔧 Advanced</h3>
                     
                     <div class="setting-item">
-                        <label class="setting-label">Auto Sync Interval (minutes)</label>
-                        <input type="number" class="setting-input" id="autoSyncInterval" value="0" min="0" max="60" step="5">
-                        <div class="setting-desc">0 = disabled, 5-60 = minutes between auto sync</div>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="setting-label">Blur Effect Strength</label>
-                        <input type="range" class="setting-input" id="blurStrength" value="20" min="0" max="50" step="5">
-                        <div class="setting-desc">Adjust backdrop blur intensity (0-50px)</div>
-                    </div>
-
-                    <div class="setting-item">
-                        <button class="btn btn-secondary" style="width: 100%;" id="resetSettings">🔄 Reset All Settings</button>
-                    </div>
-
-                    <div class="setting-item">
-                        <button class="btn btn-danger" style="width: 100%;" id="clearAllData">⚠️ Clear All Data</button>
+                        <button class="btn btn-danger" id="resetSettings">🔄 Reset All Settings</button>
                     </div>
                 </div>
             </div>
 
-            <div style="margin-top: 1.5rem; text-align: center;">
-                <button class="btn" id="saveSettings">💾 Save Settings</button>
+            <div style="margin-top: 2rem; text-align: center;">
+                <button class="btn" id="saveSettingsBtn">💾 Save All Settings</button>
             </div>
         </div>
     </div>
 
+    <!-- Workspace Modal -->
     <div class="modal" id="workspaceModal">
         <div class="modal-content">
             <h2 id="workspaceModalTitle">Add Workspace</h2>
             <input type="hidden" id="editWorkspaceId">
             <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="workspaceName" placeholder="e.g. Work">
+                <label>Workspace ID (lowercase, no spaces)</label>
+                <input type="text" id="workspaceId" placeholder="e.g. work, personal">
+            </div>
+            <div class="form-group">
+                <label>Workspace Name</label>
+                <input type="text" id="workspaceName" placeholder="e.g. Work, Personal">
             </div>
             <div class="form-group">
                 <label>Icon (Emoji)</label>
-                <input type="text" id="workspaceIcon" placeholder="e.g. 💼" maxlength="2">
+                <input type="text" id="workspaceIcon" placeholder="e.g. 💼, 🎮" maxlength="2">
             </div>
             <div class="form-group">
                 <label>Color</label>
@@ -847,28 +813,23 @@
             searchNewTab: true,
             fontSize: 'medium',
             showUrls: false,
-            compactMode: false,
-            chordTimeout: 1000,
-            showChordIndicator: true,
-            chordSound: false,
-            autoSyncInterval: 0,
-            blurStrength: 20
+            compactMode: false
         };
 
-        let bookmarks = [];
-        let workspaces = [];
-        let currentPanel = 'status';
         let settings = { ...DEFAULT_SETTINGS };
+        let workspaces = [];
+        let bookmarks = [];
 
         async function init() {
             loadSettings();
             applySettings();
-            await loadData();
-            renderStats();
-            renderWorkspaceChart();
-            renderWorkspaceList();
-            populateSettingsForm();
+            await loadWorkspacesFromSupabase();
+            await loadBookmarksFromSupabase();
+            updateStats();
+            setupTabs();
             setupEventListeners();
+            setInterval(updateClock, 1000);
+            updateClock();
         }
 
         function loadSettings() {
@@ -877,70 +838,89 @@
                 if (stored) {
                     settings = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
                 }
+                applySettingsToUI();
             } catch (e) {
-                console.error('Settings load error:', e);
+                console.error('Error loading settings:', e);
+                settings = { ...DEFAULT_SETTINGS };
             }
         }
 
         function applySettings() {
             document.documentElement.setAttribute('data-theme', settings.themeMode);
+            
             if (settings.accentColor) {
                 document.documentElement.style.setProperty('--accent', settings.accentColor);
             }
+
             if (settings.bgType === 'image' && settings.bgUrl) {
                 document.body.classList.add('custom-bg');
                 document.body.style.setProperty('--custom-bg', `url(${settings.bgUrl})`);
+            } else {
+                document.body.classList.remove('custom-bg');
             }
         }
 
-        async function loadData() {
+        async function loadWorkspacesFromSupabase() {
             try {
-                const [wsRes, bmRes] = await Promise.all([
-                    fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`
-                        }
-                    }),
-                    fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`
-                        }
-                    })
-                ]);
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
                 
-                if (wsRes.ok) workspaces = await wsRes.json();
-                if (bmRes.ok) bookmarks = await bmRes.json();
-                
-                if (workspaces.length === 0) {
-                    workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
+                if (response.ok) {
+                    workspaces = await response.json();
+                    renderWorkspaces();
+                } else {
+                    throw new Error('Failed to load');
                 }
-            } catch (error) {
-                console.error('Load data error:', error);
-                showToast('⚠️ Failed to load data');
+            } catch (e) {
+                console.error('Error loading workspaces:', e);
+                showToast('⚠️ Failed to load workspaces');
             }
         }
 
-        function renderStats() {
+        async function loadBookmarksFromSupabase() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    bookmarks = await response.json();
+                } else {
+                    throw new Error('Failed to load');
+                }
+            } catch (e) {
+                console.error('Error loading bookmarks:', e);
+            }
+        }
+
+        function updateStats() {
             document.getElementById('totalBookmarks').textContent = bookmarks.length;
             document.getElementById('totalWorkspaces').textContent = workspaces.length;
-            
-            const chordsCount = bookmarks.filter(b => b.chord).length;
-            document.getElementById('totalChords').textContent = chordsCount;
-            
-            document.getElementById('syncStatus').textContent = '✅';
+            document.getElementById('totalChords').textContent = bookmarks.filter(b => b.chord).length;
+            document.getElementById('syncStatus').textContent = '✓';
             document.getElementById('syncCard').classList.add('green');
+            
+            renderWorkspaceChart();
         }
 
         function renderWorkspaceChart() {
             const container = document.getElementById('workspaceChart');
-            const maxCount = Math.max(...workspaces.map(ws => 
-                bookmarks.filter(b => b.workspace === ws.id).length
-            ), 1);
+            const counts = {};
+            workspaces.forEach(ws => {
+                counts[ws.id] = bookmarks.filter(b => b.workspace === ws.id).length;
+            });
+            
+            const maxCount = Math.max(...Object.values(counts), 1);
             
             container.innerHTML = workspaces.map(ws => {
-                const count = bookmarks.filter(b => b.workspace === ws.id).length;
+                const count = counts[ws.id] || 0;
                 const percentage = (count / maxCount) * 100;
                 return `
                     <div class="bar-item">
@@ -955,8 +935,14 @@
             }).join('');
         }
 
-        function renderWorkspaceList() {
+        function renderWorkspaces() {
             const container = document.getElementById('workspaceList');
+            
+            if (workspaces.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No workspaces found</p>';
+                return;
+            }
+            
             container.innerHTML = workspaces.map(ws => {
                 const count = bookmarks.filter(b => b.workspace === ws.id).length;
                 return `
@@ -965,294 +951,47 @@
                             <div class="workspace-icon">${ws.icon}</div>
                             <div>
                                 <div class="workspace-name">${ws.name}</div>
-                                <div class="workspace-count">${count} bookmarks</div>
+                                <div class="workspace-count">${count} bookmarks • ID: ${ws.id}</div>
                             </div>
                         </div>
                         <div class="workspace-actions">
                             <button class="icon-btn" onclick="editWorkspace('${ws.id}')">✏️</button>
-                            <button class="icon-btn danger" onclick="deleteWorkspace('${ws.id}')">🗑️</button>
+                            ${ws.id !== 'default' ? `<button class="icon-btn danger" onclick="deleteWorkspace('${ws.id}')">🗑️</button>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function populateSettingsForm() {
-            // Theme
-            document.querySelector(`input[name="themeMode"][value="${settings.themeMode}"]`).checked = true;
-            
-            // Accent Color
-            document.getElementById('accentColor').value = settings.accentColor;
-            
-            // Font Size
-            document.getElementById('fontSize').value = settings.fontSize;
-            
-            // Animations
-            document.getElementById('showAnimations').checked = settings.showAnimations;
-            
-            // Background
-            document.querySelector(`input[name="bgType"][value="${settings.bgType}"]`).checked = true;
-            document.getElementById('bgUrl').value = settings.bgUrl || '';
-            toggleBgUrlInput();
-            
-            // Card Settings
-            document.getElementById('cardSize').value = settings.cardSize;
-            document.getElementById('cardStyle').value = settings.cardStyle;
-            document.getElementById('showUrls').checked = settings.showUrls;
-            document.getElementById('compactMode').checked = settings.compactMode;
-            
-            // Search
-            document.getElementById('defaultEngine').value = settings.defaultEngine;
-            document.getElementById('searchNewTab').checked = settings.searchNewTab;
-            
-            // Chord Settings
-            document.getElementById('chordTimeout').value = settings.chordTimeout;
-            document.getElementById('showChordIndicator').checked = settings.showChordIndicator;
-            document.getElementById('chordSound').checked = settings.chordSound;
-            
-            // Advanced
-            document.getElementById('autoSyncInterval').value = settings.autoSyncInterval;
-            document.getElementById('blurStrength').value = settings.blurStrength;
-        }
-
-        function toggleBgUrlInput() {
-            const bgType = document.querySelector('input[name="bgType"]:checked').value;
-            const urlContainer = document.getElementById('bgUrlContainer');
-            urlContainer.style.display = bgType === 'image' ? 'block' : 'none';
-        }
-
-        function setupEventListeners() {
-            // Tab switching
-            document.querySelectorAll('.tab[data-panel]').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const panel = tab.dataset.panel;
-                    switchPanel(panel);
-                });
-            });
-
-            // Background type change
-            document.querySelectorAll('input[name="bgType"]').forEach(radio => {
-                radio.addEventListener('change', toggleBgUrlInput);
-            });
-
-            // Save Settings
-            document.getElementById('saveSettings').addEventListener('click', saveSettings);
-
-            // Reset Settings
-            document.getElementById('resetSettings').addEventListener('click', () => {
-                if (confirm('Reset all settings to default?')) {
-                    settings = { ...DEFAULT_SETTINGS };
-                    localStorage.setItem('niuSettings', JSON.stringify(settings));
-                    populateSettingsForm();
-                    applySettings();
-                    notifyIndexPage();
-                    showToast('✅ Settings reset!');
-                }
-            });
-
-            // Clear All Data
-            document.getElementById('clearAllData').addEventListener('click', () => {
-                if (confirm('⚠️ This will delete ALL bookmarks and workspaces! Continue?')) {
-                    if (confirm('Are you absolutely sure? This cannot be undone!')) {
-                        clearAllData();
-                    }
-                }
-            });
-
-            // Export buttons
-            document.getElementById('exportJSON').addEventListener('click', exportJSON);
-            document.getElementById('exportCSV').addEventListener('click', exportCSV);
-            document.getElementById('exportMarkdown').addEventListener('click', exportMarkdown);
-
-            // Workspace management
-            document.getElementById('addWorkspaceBtn').addEventListener('click', openAddWorkspace);
-            document.getElementById('syncWorkspacesBtn').addEventListener('click', syncData);
-            document.getElementById('saveWorkspace').addEventListener('click', saveWorkspace);
-            document.getElementById('cancelWorkspace').addEventListener('click', closeWorkspaceModal);
-            
-            // Modal close on backdrop click
-            document.getElementById('workspaceModal').addEventListener('click', (e) => {
-                if (e.target.id === 'workspaceModal') {
-                    closeWorkspaceModal();
-                }
-            });
-        }
-
-        function switchPanel(panelName) {
-            currentPanel = panelName;
-            
-            document.querySelectorAll('.tab[data-panel]').forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.panel === panelName);
-            });
-            
-            document.querySelectorAll('.panel').forEach(panel => {
-                panel.classList.remove('active');
-            });
-            
-            const panelMap = {
-                'status': 'statusPanel',
-                'workspaces': 'workspacesPanel',
-                'settings': 'settingsPanel'
-            };
-            
-            document.getElementById(panelMap[panelName]).classList.add('active');
-        }
-
-        function saveSettings() {
-            // Collect all settings
-            settings.themeMode = document.querySelector('input[name="themeMode"]:checked').value;
-            settings.accentColor = document.getElementById('accentColor').value;
-            settings.fontSize = document.getElementById('fontSize').value;
-            settings.showAnimations = document.getElementById('showAnimations').checked;
-            settings.bgType = document.querySelector('input[name="bgType"]:checked').value;
-            settings.bgUrl = document.getElementById('bgUrl').value;
-            settings.cardSize = document.getElementById('cardSize').value;
-            settings.cardStyle = document.getElementById('cardStyle').value;
-            settings.showUrls = document.getElementById('showUrls').checked;
-            settings.compactMode = document.getElementById('compactMode').checked;
-            settings.defaultEngine = document.getElementById('defaultEngine').value;
-            settings.searchNewTab = document.getElementById('searchNewTab').checked;
-            settings.chordTimeout = parseInt(document.getElementById('chordTimeout').value);
-            settings.showChordIndicator = document.getElementById('showChordIndicator').checked;
-            settings.chordSound = document.getElementById('chordSound').checked;
-            settings.autoSyncInterval = parseInt(document.getElementById('autoSyncInterval').value);
-            settings.blurStrength = parseInt(document.getElementById('blurStrength').value);
-            
-            // Save to localStorage
-            localStorage.setItem('niuSettings', JSON.stringify(settings));
-            
-            // Apply immediately
-            applySettings();
-            
-            // Notify index.html
-            notifyIndexPage();
-            
-            showToast('✅ Settings saved!');
-        }
-
-        function notifyIndexPage() {
-            // Trigger storage event for other tabs
-            window.dispatchEvent(new Event('storage'));
-            
-            // Also trigger custom event for same window
-            window.dispatchEvent(new CustomEvent('settingsUpdated'));
-        }
-
-        async function clearAllData() {
-            try {
-                await Promise.all([
-                    fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=gt.0`, {
-                        method: 'DELETE',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`
-                        }
-                    }),
-                    fetch(`${SUPABASE_URL}/rest/v1/workspaces?id=neq.default`, {
-                        method: 'DELETE',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`
-                        }
-                    })
-                ]);
-                
-                bookmarks = [];
-                workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
-                
-                renderStats();
-                renderWorkspaceChart();
-                renderWorkspaceList();
-                
-                showToast('✅ All data cleared!');
-            } catch (error) {
-                showToast('❌ Clear failed');
-            }
-        }
-
-        function exportJSON() {
-            const data = { bookmarks, workspaces, settings };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            downloadFile(blob, 'niu-startpage-export.json');
-            showToast('📄 JSON exported!');
-        }
-
-        function exportCSV() {
-            const header = 'Title,URL,Chord,Workspace\n';
-            const rows = bookmarks.map(b => 
-                `"${b.title}","${b.url}","${b.chord || ''}","${b.workspace}"`
-            ).join('\n');
-            
-            const blob = new Blob([header + rows], { type: 'text/csv' });
-            downloadFile(blob, 'niu-startpage-bookmarks.csv');
-            showToast('📊 CSV exported!');
-        }
-
-        function exportMarkdown() {
-            let md = '# Niu Startpage Bookmarks\n\n';
-            
-            workspaces.forEach(ws => {
-                const wsBookmarks = bookmarks.filter(b => b.workspace === ws.id);
-                if (wsBookmarks.length > 0) {
-                    md += `## ${ws.icon} ${ws.name}\n\n`;
-                    wsBookmarks.forEach(b => {
-                        md += `- [${b.title}](${b.url})`;
-                        if (b.chord) md += ` \`${b.chord}\``;
-                        md += '\n';
-                    });
-                    md += '\n';
-                }
-            });
-            
-            const blob = new Blob([md], { type: 'text/markdown' });
-            downloadFile(blob, 'niu-startpage-bookmarks.md');
-            showToast('📝 Markdown exported!');
-        }
-
-        function downloadFile(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function openAddWorkspace() {
-            document.getElementById('workspaceModalTitle').textContent = 'Add Workspace';
-            document.getElementById('editWorkspaceId').value = '';
-            document.getElementById('workspaceName').value = '';
-            document.getElementById('workspaceIcon').value = '';
-            document.getElementById('workspaceColor').value = '#3b82f6';
-            document.getElementById('workspaceModal').classList.add('active');
-        }
-
         window.editWorkspace = function(id) {
-            const ws = workspaces.find(w => w.id === id);
-            if (!ws) return;
+            const workspace = workspaces.find(w => w.id === id);
+            if (!workspace) return;
             
             document.getElementById('workspaceModalTitle').textContent = 'Edit Workspace';
             document.getElementById('editWorkspaceId').value = id;
-            document.getElementById('workspaceName').value = ws.name;
-            document.getElementById('workspaceIcon').value = ws.icon;
-            document.getElementById('workspaceColor').value = ws.color;
+            document.getElementById('workspaceId').value = id;
+            document.getElementById('workspaceId').disabled = true;
+            document.getElementById('workspaceName').value = workspace.name;
+            document.getElementById('workspaceIcon').value = workspace.icon;
+            document.getElementById('workspaceColor').value = workspace.color;
+            
             document.getElementById('workspaceModal').classList.add('active');
         };
 
         window.deleteWorkspace = async function(id) {
-            if (id === 'default') {
-                showToast('❌ Cannot delete default workspace');
-                return;
-            }
-            
-            const wsBookmarks = bookmarks.filter(b => b.workspace === id);
-            if (wsBookmarks.length > 0) {
-                if (!confirm(`This workspace has ${wsBookmarks.length} bookmarks. Delete anyway?`)) {
-                    return;
-                }
-            }
+            if (!confirm(`Delete workspace "${id}"? Bookmarks will be moved to Default.`)) return;
             
             try {
+                await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?workspace=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ workspace: 'default' })
+                });
+                
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?id=eq.${id}`, {
                     method: 'DELETE',
                     headers: {
@@ -1262,31 +1001,112 @@
                 });
                 
                 if (response.ok) {
-                    workspaces = workspaces.filter(w => w.id !== id);
-                    renderWorkspaceList();
-                    renderWorkspaceChart();
-                    renderStats();
-                    showToast('✅ Workspace deleted');
+                    await loadWorkspacesFromSupabase();
+                    await loadBookmarksFromSupabase();
+                    updateStats();
+                    showToast('✅ Deleted!');
+                } else {
+                    throw new Error('Delete failed');
                 }
             } catch (error) {
+                console.error('Delete error:', error);
                 showToast('❌ Delete failed');
             }
         };
 
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab[data-panel]');
+            const panels = document.querySelectorAll('.panel');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelector('.tab.active')?.classList.remove('active');
+                    tab.classList.add('active');
+                    panels.forEach(p => p.classList.remove('active'));
+                    document.getElementById(tab.dataset.panel + 'Panel').classList.add('active');
+                });
+            });
+        }
+
+        function setupEventListeners() {
+            const bgTypeRadios = document.querySelectorAll('input[name="bgType"]');
+            bgTypeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    document.getElementById('bgImageSettings').style.display = 
+                        e.target.value === 'image' ? 'block' : 'none';
+                });
+            });
+
+            document.getElementById('bgUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        document.getElementById('bgUrl').value = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('addWorkspaceBtn').addEventListener('click', () => {
+                document.getElementById('workspaceModalTitle').textContent = 'Add Workspace';
+                document.getElementById('editWorkspaceId').value = '';
+                document.getElementById('workspaceId').value = '';
+                document.getElementById('workspaceId').disabled = false;
+                document.getElementById('workspaceName').value = '';
+                document.getElementById('workspaceIcon').value = '📁';
+                document.getElementById('workspaceColor').value = '#3b82f6';
+                document.getElementById('workspaceModal').classList.add('active');
+            });
+
+            document.getElementById('saveWorkspace').addEventListener('click', saveWorkspace);
+            document.getElementById('cancelWorkspace').addEventListener('click', () => {
+                document.getElementById('workspaceModal').classList.remove('active');
+            });
+
+            document.getElementById('syncWorkspacesBtn').addEventListener('click', async () => {
+                showToast('🔄 Syncing...');
+                await loadWorkspacesFromSupabase();
+                await loadBookmarksFromSupabase();
+                updateStats();
+                showToast('✅ Synced!');
+            });
+
+            document.getElementById('saveSettingsBtn').addEventListener('click', saveAllSettings);
+            
+            document.getElementById('exportSettings').addEventListener('click', exportSettings);
+            document.getElementById('importSettings').addEventListener('click', importSettings);
+            document.getElementById('importFile').addEventListener('change', handleImportFile);
+            
+            document.getElementById('resetSettings').addEventListener('click', resetAllSettings);
+
+            document.getElementById('exportJSON').addEventListener('click', () => exportBookmarks('json'));
+            document.getElementById('exportCSV').addEventListener('click', () => exportBookmarks('csv'));
+            document.getElementById('exportMarkdown').addEventListener('click', () => exportBookmarks('markdown'));
+
+            document.getElementById('workspaceModal').addEventListener('click', (e) => {
+                if (e.target.id === 'workspaceModal') {
+                    e.target.classList.remove('active');
+                }
+            });
+        }
+
         async function saveWorkspace() {
-            const id = document.getElementById('editWorkspaceId').value;
+            const editId = document.getElementById('editWorkspaceId').value;
+            const id = document.getElementById('workspaceId').value.trim().toLowerCase().replace(/\s+/g, '_');
             const name = document.getElementById('workspaceName').value.trim();
             const icon = document.getElementById('workspaceIcon').value.trim();
             const color = document.getElementById('workspaceColor').value;
             
-            if (!name || !icon) {
-                showToast('❌ Name and icon required!');
+            if (!id || !name) {
+                showToast('❌ ID and name required!');
                 return;
             }
             
             try {
-                if (id) {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?id=eq.${id}`, {
+                if (editId) {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?id=eq.${editId}`, {
                         method: 'PATCH',
                         headers: {
                             'apikey': SUPABASE_KEY,
@@ -1298,12 +1118,17 @@
                     });
                     
                     if (response.ok) {
-                        const [updated] = await response.json();
-                        const index = workspaces.findIndex(w => w.id === id);
-                        if (index !== -1) workspaces[index] = updated;
-                        showToast('✅ Workspace updated!');
+                        showToast('✅ Updated!');
+                    } else {
+                        throw new Error('Update failed');
                     }
                 } else {
+                    const existing = workspaces.find(w => w.id === id);
+                    if (existing) {
+                        showToast('❌ Workspace ID already exists!');
+                        return;
+                    }
+
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces`, {
                         method: 'POST',
                         headers: {
@@ -1312,42 +1137,194 @@
                             'Content-Type': 'application/json',
                             'Prefer': 'return=representation'
                         },
-                        body: JSON.stringify({ 
-                            id: name.toLowerCase().replace(/\s+/g, '-'),
-                            name, 
-                            icon, 
+                        body: JSON.stringify({
+                            id,
+                            name,
+                            icon,
                             color,
                             sort_order: workspaces.length
                         })
                     });
                     
                     if (response.ok) {
-                        const [newWs] = await response.json();
-                        workspaces.push(newWs);
-                        showToast('✅ Workspace added!');
+                        showToast('✅ Created!');
+                    } else {
+                        throw new Error('Create failed');
                     }
                 }
                 
-                renderWorkspaceList();
-                renderWorkspaceChart();
-                renderStats();
-                closeWorkspaceModal();
+                await loadWorkspacesFromSupabase();
+                updateStats();
+                document.getElementById('workspaceModal').classList.remove('active');
             } catch (error) {
+                console.error('Save error:', error);
                 showToast('❌ Save failed');
             }
         }
 
-        function closeWorkspaceModal() {
-            document.getElementById('workspaceModal').classList.remove('active');
+        function applySettingsToUI() {
+            document.getElementById('themeMode').value = settings.themeMode;
+            document.getElementById('accentColor').value = settings.accentColor;
+            document.getElementById('cardSize').value = settings.cardSize;
+            document.getElementById('cardStyle').value = settings.cardStyle;
+            document.getElementById('showAnimations').checked = settings.showAnimations;
+            document.getElementById('defaultEngine').value = settings.defaultEngine;
+            document.getElementById('searchNewTab').checked = settings.searchNewTab;
+            document.getElementById('fontSize').value = settings.fontSize;
+            document.getElementById('showUrls').checked = settings.showUrls;
+            document.getElementById('compactMode').checked = settings.compactMode;
+            
+            const bgTypeRadio = document.querySelector(`input[name="bgType"][value="${settings.bgType}"]`);
+            if (bgTypeRadio) bgTypeRadio.checked = true;
+            
+            document.getElementById('bgUrl').value = settings.bgUrl || '';
+            document.getElementById('bgImageSettings').style.display = 
+                settings.bgType === 'image' ? 'block' : 'none';
         }
 
-        async function syncData() {
-            showToast('🔄 Syncing...');
-            await loadData();
-            renderStats();
-            renderWorkspaceChart();
-            renderWorkspaceList();
-            showToast('✅ Synced!');
+        function saveAllSettings() {
+            settings.themeMode = document.getElementById('themeMode').value;
+            settings.accentColor = document.getElementById('accentColor').value;
+            settings.bgType = document.querySelector('input[name="bgType"]:checked').value;
+            settings.bgUrl = document.getElementById('bgUrl').value;
+            settings.cardSize = document.getElementById('cardSize').value;
+            settings.cardStyle = document.getElementById('cardStyle').value;
+            settings.showAnimations = document.getElementById('showAnimations').checked;
+            settings.defaultEngine = document.getElementById('defaultEngine').value;
+            settings.searchNewTab = document.getElementById('searchNewTab').checked;
+            settings.fontSize = document.getElementById('fontSize').value;
+            settings.showUrls = document.getElementById('showUrls').checked;
+            settings.compactMode = document.getElementById('compactMode').checked;
+
+            localStorage.setItem('niuSettings', JSON.stringify(settings));
+            showToast('✅ Settings saved!');
+            applySettings();
+            window.dispatchEvent(new Event('storage'));
+        }
+
+        function exportSettings() {
+            const dataStr = JSON.stringify({
+                settings: settings,
+                workspaces: workspaces,
+                bookmarks: bookmarks,
+                exportDate: new Date().toISOString()
+            }, null, 2);
+            
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `niu-startpage-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('📤 Settings exported!');
+        }
+
+        function importSettings() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.settings) {
+                        settings = { ...DEFAULT_SETTINGS, ...data.settings };
+                        localStorage.setItem('niuSettings', JSON.stringify(settings));
+                        applySettingsToUI();
+                        applySettings();
+                        showToast('📥 Settings imported!');
+                    }
+                } catch (error) {
+                    showToast('❌ Invalid file format');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetAllSettings() {
+            if (!confirm('Reset all settings to default? This cannot be undone.')) return;
+            
+            settings = { ...DEFAULT_SETTINGS };
+            localStorage.setItem('niuSettings', JSON.stringify(settings));
+            applySettingsToUI();
+            applySettings();
+            showToast('🔄 Settings reset!');
+            window.dispatchEvent(new Event('storage'));
+        }
+
+        function exportBookmarks(format) {
+            if (bookmarks.length === 0) {
+                showToast('❌ No bookmarks to export');
+                return;
+            }
+
+            let content, mimeType, filename;
+            const date = new Date().toISOString().split('T')[0];
+
+            if (format === 'json') {
+                content = JSON.stringify(bookmarks, null, 2);
+                mimeType = 'application/json';
+                filename = `niu-bookmarks-${date}.json`;
+            } else if (format === 'csv') {
+                const headers = ['ID', 'Title', 'URL', 'Chord', 'Workspace', 'Created'];
+                const rows = bookmarks.map(b => [
+                    b.id,
+                    `"${b.title.replace(/"/g, '""')}"`,
+                    `"${b.url}"`,
+                    b.chord || '',
+                    b.workspace,
+                    b.created_at || ''
+                ]);
+                content = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                mimeType = 'text/csv';
+                filename = `niu-bookmarks-${date}.csv`;
+            } else if (format === 'markdown') {
+                const grouped = {};
+                bookmarks.forEach(b => {
+                    if (!grouped[b.workspace]) grouped[b.workspace] = [];
+                    grouped[b.workspace].push(b);
+                });
+
+                content = '# Niu Startpage Bookmarks\n\n';
+                content += `Exported: ${new Date().toLocaleString()}\n\n`;
+                
+                Object.keys(grouped).forEach(wsId => {
+                    const ws = workspaces.find(w => w.id === wsId);
+                    content += `## ${ws ? ws.icon + ' ' + ws.name : wsId}\n\n`;
+                    grouped[wsId].forEach(b => {
+                        content += `- [${b.title}](${b.url})`;
+                        if (b.chord) content += ` \`${b.chord}\``;
+                        content += '\n';
+                    });
+                    content += '\n';
+                });
+                
+                mimeType = 'text/markdown';
+                filename = `niu-bookmarks-${date}.md`;
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showToast(`✅ Exported as ${format.toUpperCase()}!`);
+        }
+
+        function updateClock() {
+            const d = new Date();
+            const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            const pill = document.getElementById('clockPill');
+            if (pill) pill.textContent = time;
         }
 
         function showToast(message) {

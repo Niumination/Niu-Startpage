@@ -17,6 +17,7 @@
             --text-secondary: #a0a0a0;
             --accent: #3b82f6;
             --accent-hover: #2563eb;
+            --blur-strength: 20px;
         }
 
         [data-theme="light"] {
@@ -38,6 +39,7 @@
             justify-content: center;
             padding: 2rem;
             padding-bottom: 5rem;
+            transition: all 0.3s ease;
         }
 
         body.custom-bg {
@@ -47,16 +49,28 @@
             background-attachment: fixed;
         }
 
+        body.no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        body.font-small { font-size: 14px; }
+        body.font-medium { font-size: 16px; }
+        body.font-large { font-size: 18px; }
+
         .container {
             width: 100%;
             max-width: 1200px;
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(var(--blur-strength));
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             padding: 2rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
+
+        .container.compact { padding: 1rem; }
 
         .header {
             text-align: center;
@@ -200,11 +214,44 @@
             outline: none;
         }
 
+        .chord-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            padding: 2rem 3rem;
+            border-radius: 20px;
+            font-size: 3rem;
+            font-weight: 700;
+            z-index: 9999;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .chord-indicator.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
         .bookmarks {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
+        }
+
+        .bookmarks.card-small {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .bookmarks.card-large {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
         }
 
         .bookmark-card {
@@ -216,198 +263,139 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bookmark-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transition: transform 0.3s;
         }
 
         .bookmark-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent);
             background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
-        .bookmark-link {
+        .bookmark-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .bookmark-card.chord-activated {
+            animation: chordPulse 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            background: linear-gradient(135deg, var(--accent), #8b5cf6) !important;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.5);
+        }
+
+        @keyframes chordPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1.05); }
+        }
+
+        .bookmark-card.style-solid {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .bookmark-card.style-outlined {
+            background: transparent;
+            border-width: 2px;
+        }
+
+        .bookmark-info {
             flex: 1;
-            text-decoration: none;
-            color: var(--text-primary);
         }
 
         .bookmark-title {
             font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bookmark-chord {
-            font-size: 0.75rem;
-            background: var(--accent);
-            color: white;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-        }
-
-        .bookmark-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: 1rem;
-        }
-
-        .icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .icon-btn:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        .icon-btn.delete:hover {
-            background: #ef4444;
-        }
-
-        .controls {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-        }
-
-        .modal-content h2 {
-            margin-bottom: 1.5rem;
-            color: var(--accent);
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
             margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            color: var(--text-primary);
             font-size: 1rem;
         }
 
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--accent);
+        .bookmark-url {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: none;
+            word-break: break-all;
         }
 
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
+        .bookmark-url.visible {
+            display: block;
         }
 
-        .toast {
+        .bookmark-chord {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .settings-link {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
             background: var(--accent);
             color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
+            padding: 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transform: translateY(200px);
+            z-index: 100;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .settings-link:hover {
+            transform: scale(1.1) rotate(45deg);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--accent);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             opacity: 0;
             transition: all 0.3s;
-            z-index: 2000;
+            z-index: 9999;
         }
 
         .toast.show {
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(0);
             opacity: 1;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-secondary);
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 1rem;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .footer a {
-            color: var(--accent);
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .footer a:hover {
-            color: var(--accent-hover);
-            text-decoration: underline;
         }
 
         @media (max-width: 768px) {
             .bookmarks {
                 grid-template-columns: 1fr;
+            }
+            
+            .settings-link {
+                bottom: 1rem;
+                right: 1rem;
             }
         }
     </style>
@@ -415,477 +403,411 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 Niu Startpage</h1>
-            <p>Press <kbd>=</kbd> to search • <kbd>1-9</kbd> to switch workspaces</p>
+            <h1>🌟 Niu Startpage</h1>
+            <p>Your personalized navigation hub</p>
         </div>
 
-        <div class="workspace-tabs" id="workspaceTabs">
-            <div class="loading">Loading workspaces...</div>
-        </div>
+        <div class="workspace-tabs" id="workspaceTabs"></div>
 
         <div class="search-container">
             <div class="search-wrapper">
                 <div class="engine-selector" id="engineSelector">
-                    <span id="currentEngine">Google</span>
-                    <span style="margin-left: auto;">▼</span>
+                    <span id="currentEngine">🔍 Google</span>
                 </div>
-                <input type="text" id="searchInput" placeholder="Search or enter chord..." autocomplete="off">
+                <input type="text" id="searchInput" placeholder="Search or type chord...">
             </div>
-            <div class="engine-dropdown" id="engineDropdown">
-                <div class="engine-option active" data-engine="google">🔍 Google</div>
-                <div class="engine-option" data-engine="searxng">🔎 SearXNG</div>
-                <div class="engine-option" data-engine="duckduckgo">🦆 DuckDuckGo</div>
-                <div class="engine-option" data-engine="youtube">📺 YouTube</div>
-            </div>
+            <div class="engine-dropdown" id="engineDropdown"></div>
         </div>
 
-        <div class="bookmarks" id="bookmarks">
-            <div class="loading">Loading bookmarks...</div>
-        </div>
-
-        <div class="controls">
-            <a class="btn" href="navigation.html">📊 Navigation</a>
-            <button class="btn" id="themeToggle">🌙 Toggle Theme</button>
-            <button class="btn" id="addBookmarkBtn">➕ Add Bookmark</button>
-            <button class="btn" id="syncBtn">🔄 Sync</button>
-        </div>
+        <div class="bookmarks" id="bookmarksContainer"></div>
     </div>
 
-    <div class="modal" id="bookmarkModal">
-        <div class="modal-content">
-            <h2 id="modalTitle">Add Bookmark</h2>
-            <input type="hidden" id="editBookmarkId">
-            <div class="form-group">
-                <label>Title</label>
-                <input type="text" id="bookmarkTitle" placeholder="e.g. Hacker News">
-            </div>
-            <div class="form-group">
-                <label>URL</label>
-                <input type="text" id="bookmarkUrl" placeholder="news.ycombinator.com">
-            </div>
-            <div class="form-group">
-                <label>Chord (2 letters)</label>
-                <input type="text" id="bookmarkChord" placeholder="e.g. HN" maxlength="2">
-            </div>
-            <div class="form-group">
-                <label>Workspace</label>
-                <select id="bookmarkWorkspace"></select>
-            </div>
-            <div class="modal-actions">
-                <button class="btn" id="saveBookmark">Save</button>
-                <button class="btn" id="cancelBookmark">Cancel</button>
-            </div>
-        </div>
-    </div>
+    <a href="navigation.html" class="settings-link" title="Settings">⚙️</a>
 
-    <div class="footer">
-        Developed by <a href="https://github.com/Niumination" target="_blank" rel="noopener">Niumination</a>
-    </div>
-
+    <div class="chord-indicator" id="chordIndicator"></div>
     <div class="toast" id="toast"></div>
 
     <script>
         const SUPABASE_URL = 'https://fjumoikzohnfgucvbcih.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdW1vaWt6b2huZmd1Y3ZiY2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MDgwMTksImV4cCI6MjA3NjQ4NDAxOX0.7JAyDHiAYuRLMZERT2IcCmd8U5ZRpHteiNsk8f5cFd4';
 
-        const searchEngines = {
-            google: 'https://www.google.com/search?q=',
-            searxng: 'https://searx.fmhy.net/search?q=',
-            duckduckgo: 'https://duckduckgo.com/?q=',
-            youtube: 'https://www.youtube.com/results?search_query='
+        const DEFAULT_SETTINGS = {
+            themeMode: 'dark',
+            accentColor: '#3b82f6',
+            bgType: 'gradient',
+            bgUrl: '',
+            cardSize: 'medium',
+            cardStyle: 'glass',
+            showAnimations: true,
+            defaultEngine: 'google',
+            searchNewTab: true,
+            fontSize: 'medium',
+            showUrls: false,
+            compactMode: false,
+            chordTimeout: 1000,
+            showChordIndicator: true,
+            chordSound: false,
+            autoSyncInterval: 0,
+            blurStrength: 20
+        };
+
+        const SEARCH_ENGINES = {
+            google: { name: '🔍 Google', url: 'https://www.google.com/search?q=' },
+            searxng: { name: '🔎 SearXNG', url: 'https://searx.be/search?q=' },
+            duckduckgo: { name: '🦆 DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
+            youtube: { name: '📺 YouTube', url: 'https://www.youtube.com/results?search_query=' }
         };
 
         let bookmarks = [];
         let workspaces = [];
+        let settings = { ...DEFAULT_SETTINGS };
         let currentWorkspace = 'default';
         let currentEngine = 'google';
-        let settings = { 
-            themeMode: 'dark', 
-            searchNewTab: true,
-            accentColor: '#3b82f6',
-            defaultEngine: 'google',
-            bgType: 'gradient',
-            bgUrl: ''
-        };
+        let chordBuffer = '';
+        let chordTimeout = null;
 
         async function init() {
-            loadSettings();
+            await loadSettings();
             applySettings();
-            await loadWorkspaces();
-            await loadBookmarks();
-            renderWorkspaceTabs();
+            await loadData();
+            renderWorkspaces();
             renderBookmarks();
+            setupSearchEngines();
             setupEventListeners();
+            setupChordListener();
+            
+            // Listen for settings changes from navigation.html
+            window.addEventListener('storage', handleSettingsChange);
+            window.addEventListener('settingsUpdated', handleSettingsChange);
         }
 
-        function loadSettings() {
+        async function loadSettings() {
             try {
                 const stored = localStorage.getItem('niuSettings');
                 if (stored) {
-                    settings = { ...settings, ...JSON.parse(stored) };
+                    settings = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
                 }
+                currentEngine = settings.defaultEngine || 'google';
             } catch (e) {
                 console.error('Settings load error:', e);
             }
         }
 
+        function handleSettingsChange() {
+            loadSettings();
+            applySettings();
+            renderBookmarks();
+            setupSearchEngines();
+            showToast('✅ Settings updated!');
+        }
+
         function applySettings() {
+            // Theme
             document.documentElement.setAttribute('data-theme', settings.themeMode);
             
+            // Accent color
             if (settings.accentColor) {
                 document.documentElement.style.setProperty('--accent', settings.accentColor);
+                const accentHover = adjustColor(settings.accentColor, -20);
+                document.documentElement.style.setProperty('--accent-hover', accentHover);
             }
-
-            if (settings.defaultEngine && searchEngines[settings.defaultEngine]) {
-                currentEngine = settings.defaultEngine;
-                updateEngineDisplay();
-            }
-
+            
+            // Background
+            document.body.classList.remove('custom-bg');
             if (settings.bgType === 'image' && settings.bgUrl) {
                 document.body.classList.add('custom-bg');
                 document.body.style.setProperty('--custom-bg', `url(${settings.bgUrl})`);
+            }
+            
+            // Font size
+            document.body.className = document.body.className.replace(/font-\w+/g, '');
+            document.body.classList.add(`font-${settings.fontSize}`);
+            
+            // Animations
+            if (!settings.showAnimations) {
+                document.body.classList.add('no-animations');
             } else {
-                document.body.classList.remove('custom-bg');
+                document.body.classList.remove('no-animations');
             }
+            
+            // Compact mode
+            const container = document.querySelector('.container');
+            if (settings.compactMode) {
+                container.classList.add('compact');
+            } else {
+                container.classList.remove('compact');
+            }
+            
+            // Card size
+            const bookmarksContainer = document.getElementById('bookmarksContainer');
+            bookmarksContainer.className = 'bookmarks';
+            if (settings.cardSize === 'small') {
+                bookmarksContainer.classList.add('card-small');
+            } else if (settings.cardSize === 'large') {
+                bookmarksContainer.classList.add('card-large');
+            }
+            
+            // Blur strength
+            document.documentElement.style.setProperty('--blur-strength', `${settings.blurStrength}px`);
         }
 
-        window.addEventListener('storage', () => {
-            loadSettings();
-            applySettings();
-        });
+        function adjustColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                (B < 255 ? B < 1 ? 0 : B : 255))
+                .toString(16).slice(1);
+        }
 
-        async function loadWorkspaces() {
+        async function loadData() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
+                const [wsRes, bmRes] = await Promise.all([
+                    fetch(`${SUPABASE_URL}/rest/v1/workspaces?select=*&order=sort_order`, {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    }),
+                    fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    })
+                ]);
                 
-                if (response.ok) {
-                    workspaces = await response.json();
-                    if (workspaces.length === 0) {
-                        workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
-                    }
-                } else {
-                    throw new Error('Failed to load workspaces');
+                if (wsRes.ok) workspaces = await wsRes.json();
+                if (bmRes.ok) bookmarks = await bmRes.json();
+                
+                if (workspaces.length === 0) {
+                    workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
                 }
             } catch (error) {
-                console.error('Load workspaces error:', error);
-                workspaces = [{ id: 'default', name: 'Default', icon: '🏠', color: '#3b82f6' }];
-                showToast('⚠️ Using offline workspaces');
+                console.error('Load data error:', error);
+                showToast('⚠️ Failed to load data');
             }
         }
 
-        async function loadBookmarks() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?select=*&order=id`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    bookmarks = await response.json();
-                } else {
-                    throw new Error('Failed to load bookmarks');
-                }
-            } catch (error) {
-                console.error('Load bookmarks error:', error);
-                showToast('⚠️ Failed to load bookmarks');
-            }
-        }
-
-        function renderWorkspaceTabs() {
+        function renderWorkspaces() {
             const container = document.getElementById('workspaceTabs');
-            container.innerHTML = workspaces.map((ws, idx) => `
+            container.innerHTML = workspaces.map((ws, index) => `
                 <div class="workspace-tab ${ws.id === currentWorkspace ? 'active' : ''}" 
                      data-workspace="${ws.id}"
-                     style="border-color: ${ws.id === currentWorkspace ? ws.color : 'rgba(255, 255, 255, 0.15)'}">
+                     style="border-color: ${ws.color}">
                     ${ws.icon} ${ws.name}
-                    ${idx < 9 ? `<span class="workspace-shortcut">${idx + 1}</span>` : ''}
+                    ${index < 9 ? `<span class="workspace-shortcut">${index + 1}</span>` : ''}
                 </div>
             `).join('');
+            
+            container.querySelectorAll('.workspace-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    currentWorkspace = tab.dataset.workspace;
+                    renderWorkspaces();
+                    renderBookmarks();
+                });
+            });
         }
 
         function renderBookmarks() {
-            const container = document.getElementById('bookmarks');
-            const filtered = bookmarks.filter(b => b.workspace === currentWorkspace);
+            const container = document.getElementById('bookmarksContainer');
+            const wsBookmarks = bookmarks.filter(b => b.workspace === currentWorkspace);
             
-            if (filtered.length === 0) {
-                const ws = workspaces.find(w => w.id === currentWorkspace);
+            if (wsBookmarks.length === 0) {
                 container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">${ws ? ws.icon : '📚'}</div>
-                        <h3 style="color: var(--text-primary);">No bookmarks in ${ws ? ws.name : 'this workspace'}</h3>
-                        <p>Click "Add Bookmark" to create one!</p>
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <p style="font-size: 3rem; margin-bottom: 1rem;">📚</p>
+                        <p>No bookmarks yet in this workspace</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Go to Settings to add bookmarks</p>
                     </div>
                 `;
                 return;
             }
             
-            container.innerHTML = filtered.map(b => `
-                <div class="bookmark-card">
-                    <a href="${b.url}" class="bookmark-link" target="_blank" rel="noopener">
-                        <div class="bookmark-title">
-                            <span>${b.title}</span>
-                            ${b.chord ? `<span class="bookmark-chord">${b.chord}</span>` : ''}
+            container.innerHTML = wsBookmarks.map(bookmark => {
+                const cardClass = settings.cardStyle === 'solid' ? 'style-solid' : 
+                                 settings.cardStyle === 'outlined' ? 'style-outlined' : '';
+                return `
+                    <a href="${bookmark.url}" 
+                       class="bookmark-card ${cardClass}" 
+                       target="${settings.searchNewTab ? '_blank' : '_self'}"
+                       rel="noopener noreferrer"
+                       data-bookmark-id="${bookmark.id}">
+                        <div class="bookmark-info">
+                            <div class="bookmark-title">${bookmark.title}</div>
+                            <div class="bookmark-url ${settings.showUrls ? 'visible' : ''}">${bookmark.url}</div>
                         </div>
+                        ${bookmark.chord ? `<div class="bookmark-chord">${bookmark.chord}</div>` : ''}
                     </a>
-                    <div class="bookmark-actions">
-                        <button class="icon-btn" onclick="editBookmark(${b.id})">✏️</button>
-                        <button class="icon-btn delete" onclick="deleteBookmark(${b.id})">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        window.editBookmark = function(id) {
-            const bookmark = bookmarks.find(b => b.id === id);
-            if (!bookmark) return;
+        function setupSearchEngines() {
+            const dropdown = document.getElementById('engineDropdown');
+            dropdown.innerHTML = Object.entries(SEARCH_ENGINES).map(([key, engine]) => `
+                <div class="engine-option ${key === currentEngine ? 'active' : ''}" 
+                     data-engine="${key}">
+                    ${engine.name}
+                </div>
+            `).join('');
             
-            document.getElementById('modalTitle').textContent = 'Edit Bookmark';
-            document.getElementById('editBookmarkId').value = id;
-            document.getElementById('bookmarkTitle').value = bookmark.title;
-            document.getElementById('bookmarkUrl').value = bookmark.url;
-            document.getElementById('bookmarkChord').value = bookmark.chord || '';
+            document.getElementById('currentEngine').textContent = SEARCH_ENGINES[currentEngine].name;
             
-            const select = document.getElementById('bookmarkWorkspace');
-            select.innerHTML = workspaces.map(ws => 
-                `<option value="${ws.id}" ${ws.id === bookmark.workspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
-            ).join('');
-            
-            document.getElementById('bookmarkModal').classList.add('active');
-        };
-
-        window.deleteBookmark = async function(id) {
-            if (!confirm('Delete this bookmark?')) return;
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
+            dropdown.querySelectorAll('.engine-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    currentEngine = option.dataset.engine;
+                    document.getElementById('currentEngine').textContent = SEARCH_ENGINES[currentEngine].name;
+                    document.getElementById('engineDropdown').classList.remove('show');
+                    dropdown.querySelectorAll('.engine-option').forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.engine === currentEngine);
+                    });
                 });
-                
-                if (response.ok) {
-                    bookmarks = bookmarks.filter(b => b.id !== id);
-                    renderBookmarks();
-                    showToast('✅ Deleted');
-                }
-            } catch (error) {
-                showToast('❌ Delete failed');
-            }
-        };
-
-        function updateEngineDisplay() {
-            const engineNames = {
-                google: 'Google',
-                searxng: 'SearXNG',
-                duckduckgo: 'DuckDuckGo',
-                youtube: 'YouTube'
-            };
-            document.getElementById('currentEngine').textContent = engineNames[currentEngine] || 'Google';
-            
-            document.querySelectorAll('.engine-option').forEach(opt => {
-                opt.classList.toggle('active', opt.dataset.engine === currentEngine);
             });
         }
 
         function setupEventListeners() {
-            const searchInput = document.getElementById('searchInput');
-            const engineSelector = document.getElementById('engineSelector');
-            const engineDropdown = document.getElementById('engineDropdown');
+            // Engine selector toggle
+            document.getElementById('engineSelector').addEventListener('click', () => {
+                document.getElementById('engineDropdown').classList.toggle('show');
+            });
             
-            engineSelector.addEventListener('click', (e) => {
-                e.stopPropagation();
-                engineDropdown.classList.toggle('show');
-            });
-
-            document.addEventListener('click', () => {
-                engineDropdown.classList.remove('show');
-            });
-
-            engineDropdown.addEventListener('click', (e) => {
-                const option = e.target.closest('.engine-option');
-                if (option) {
-                    currentEngine = option.dataset.engine;
-                    updateEngineDisplay();
-                    engineDropdown.classList.remove('show');
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('engineDropdown').classList.remove('show');
                 }
             });
-
-            searchInput.addEventListener('keydown', (e) => {
+            
+            // Search on Enter
+            document.getElementById('searchInput').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     const query = e.target.value.trim();
                     if (query) {
-                        const url = searchEngines[currentEngine] + encodeURIComponent(query);
-                        window.open(url, settings.searchNewTab ? '_blank' : '_self');
+                        const url = SEARCH_ENGINES[currentEngine].url + encodeURIComponent(query);
+                        if (settings.searchNewTab) {
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                        } else {
+                            window.location.href = url;
+                        }
                         e.target.value = '';
                     }
                 }
             });
-
-            searchInput.addEventListener('input', (e) => {
-                const input = e.target.value.toUpperCase();
-                if (input.length === 2) {
-                    const bookmark = bookmarks.find(b => b.chord && b.chord.toUpperCase() === input);
-                    if (bookmark) {
-                        window.open(bookmark.url, '_blank');
-                        e.target.value = '';
-                    }
-                }
-            });
-
+            
+            // Workspace number shortcuts
             document.addEventListener('keydown', (e) => {
-                if (e.key >= '1' && e.key <= '9' && document.activeElement !== searchInput) {
-                    const idx = parseInt(e.key) - 1;
-                    if (idx < workspaces.length) {
-                        switchWorkspace(workspaces[idx].id);
+                // Only if not focused on input
+                if (document.activeElement.tagName === 'INPUT') return;
+                
+                if (e.key >= '1' && e.key <= '9') {
+                    const index = parseInt(e.key) - 1;
+                    if (workspaces[index]) {
+                        currentWorkspace = workspaces[index].id;
+                        renderWorkspaces();
+                        renderBookmarks();
                     }
                 }
-                
-                if (e.key === '=' && document.activeElement !== searchInput) {
-                    e.preventDefault();
-                    searchInput.focus();
-                }
-                
-                if (e.key === 'Escape') {
-                    document.getElementById('bookmarkModal').classList.remove('active');
-                }
-            });
-
-            document.getElementById('themeToggle').addEventListener('click', () => {
-                settings.themeMode = settings.themeMode === 'dark' ? 'light' : 'dark';
-                localStorage.setItem('niuSettings', JSON.stringify(settings));
-                applySettings();
-                showToast(settings.themeMode === 'dark' ? '🌙 Dark' : '☀️ Light');
-            });
-
-            document.getElementById('addBookmarkBtn').addEventListener('click', () => {
-                document.getElementById('modalTitle').textContent = 'Add Bookmark';
-                document.getElementById('editBookmarkId').value = '';
-                document.getElementById('bookmarkTitle').value = '';
-                document.getElementById('bookmarkUrl').value = '';
-                document.getElementById('bookmarkChord').value = '';
-                
-                const select = document.getElementById('bookmarkWorkspace');
-                select.innerHTML = workspaces.map(ws => 
-                    `<option value="${ws.id}" ${ws.id === currentWorkspace ? 'selected' : ''}>${ws.icon} ${ws.name}</option>`
-                ).join('');
-                
-                document.getElementById('bookmarkModal').classList.add('active');
-            });
-
-            document.getElementById('saveBookmark').addEventListener('click', saveBookmark);
-            
-            document.getElementById('cancelBookmark').addEventListener('click', () => {
-                document.getElementById('bookmarkModal').classList.remove('active');
-            });
-
-            document.getElementById('syncBtn').addEventListener('click', async () => {
-                showToast('🔄 Syncing...');
-                await loadWorkspaces();
-                await loadBookmarks();
-                renderWorkspaceTabs();
-                renderBookmarks();
-                showToast('✅ Synced!');
-            });
-
-            document.getElementById('workspaceTabs').addEventListener('click', (e) => {
-                const tab = e.target.closest('.workspace-tab');
-                if (tab) {
-                    switchWorkspace(tab.dataset.workspace);
-                }
-            });
-
-            document.getElementById('bookmarkModal').addEventListener('click', (e) => {
-                if (e.target.id === 'bookmarkModal') {
-                    e.target.classList.remove('active');
-                }
             });
         }
 
-        function switchWorkspace(id) {
-            currentWorkspace = id;
-            renderWorkspaceTabs();
-            renderBookmarks();
-        }
-
-        async function saveBookmark() {
-            const id = document.getElementById('editBookmarkId').value;
-            const title = document.getElementById('bookmarkTitle').value.trim();
-            const url = document.getElementById('bookmarkUrl').value.trim();
-            const chord = document.getElementById('bookmarkChord').value.trim().toUpperCase();
-            const workspace = document.getElementById('bookmarkWorkspace').value;
-            
-            if (!title || !url) {
-                showToast('❌ Title and URL required!');
-                return;
-            }
-            
-            let fullUrl = url;
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                fullUrl = 'https://' + url;
-            }
-            
-            if (chord && bookmarks.some(b => b.chord && b.chord.toUpperCase() === chord && b.id != id)) {
-                showToast('❌ Chord already exists!');
-                return;
-            }
-            
-            try {
-                if (id) {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks?id=eq.${id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
-                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
-                    });
+        function setupChordListener() {
+            document.addEventListener('keydown', (e) => {
+                // Ignore if focused on input
+                if (document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                // Only accept letters
+                if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                    chordBuffer += e.key.toLowerCase();
                     
-                    if (response.ok) {
-                        const [updated] = await response.json();
-                        const index = bookmarks.findIndex(b => b.id == id);
-                        if (index !== -1) bookmarks[index] = updated;
-                        showToast('✅ Updated!');
-                    } else {
-                        throw new Error('Update failed');
+                    if (settings.showChordIndicator) {
+                        showChordIndicator(chordBuffer);
                     }
+                    
+                    // Check for chord match
+                    const matchedBookmark = bookmarks.find(b => 
+                        b.chord && b.chord.toLowerCase() === chordBuffer
+                    );
+                    
+                    if (matchedBookmark) {
+                        activateChord(matchedBookmark);
+                        chordBuffer = '';
+                        return;
+                    }
+                    
+                    // Reset timeout
+                    clearTimeout(chordTimeout);
+                    chordTimeout = setTimeout(() => {
+                        chordBuffer = '';
+                        hideChordIndicator();
+                    }, settings.chordTimeout);
+                }
+            });
+        }
+
+        function showChordIndicator(text) {
+            const indicator = document.getElementById('chordIndicator');
+            indicator.textContent = text.toUpperCase();
+            indicator.classList.add('show');
+        }
+
+        function hideChordIndicator() {
+            const indicator = document.getElementById('chordIndicator');
+            indicator.classList.remove('show');
+        }
+
+        function activateChord(bookmark) {
+            hideChordIndicator();
+            
+            // Play sound if enabled
+            if (settings.chordSound) {
+                playChordSound();
+            }
+            
+            // Show visual effect on card
+            const card = document.querySelector(`[data-bookmark-id="${bookmark.id}"]`);
+            if (card) {
+                card.classList.add('chord-activated');
+                setTimeout(() => {
+                    card.classList.remove('chord-activated');
+                }, 600);
+            }
+            
+            // Show toast
+            showToast(`🚀 Opening: ${bookmark.title}`);
+            
+            // Navigate after short delay
+            setTimeout(() => {
+                if (settings.searchNewTab) {
+                    window.open(bookmark.url, '_blank', 'noopener,noreferrer');
                 } else {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookmarks`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
-                        body: JSON.stringify({ title, url: fullUrl, chord: chord || null, workspace })
-                    });
-                    
-                    if (response.ok) {
-                        const [newBookmark] = await response.json();
-                        bookmarks.push(newBookmark);
-                        showToast('✅ Added!');
-                    } else {
-                        throw new Error('Create failed');
-                    }
+                    window.location.href = bookmark.url;
                 }
-                
-                renderBookmarks();
-                document.getElementById('bookmarkModal').classList.remove('active');
-            } catch (error) {
-                console.error('Save error:', error);
-                showToast('❌ Save failed');
-            }
+            }, 300);
+        }
+
+        function playChordSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
         }
 
         function showToast(message) {
@@ -895,7 +817,20 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // Auto sync if enabled
+        function setupAutoSync() {
+            if (settings.autoSyncInterval > 0) {
+                setInterval(async () => {
+                    await loadData();
+                    renderWorkspaces();
+                    renderBookmarks();
+                    showToast('🔄 Auto-synced');
+                }, settings.autoSyncInterval * 60 * 1000);
+            }
+        }
+
         init();
+        setupAutoSync();
     </script>
 </body>
 </html>
